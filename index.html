@@ -85,6 +85,18 @@ function buildTree(people) {
     }
   });
 
+  // 🔥 TAMBAH NOMOR URUT ANAK
+  function addOrder(node) {
+    if (!node.children) return;
+
+    node.children.forEach((child, index) => {
+      child.orderLabel = `Anak ke-${index + 1}`;
+      addOrder(child);
+    });
+  }
+
+  if (root) addOrder(root);
+
   return root;
 }
 
@@ -130,7 +142,12 @@ function drawTree(data) {
   nodes.append("text")
     .attr("dy", 5)
     .attr("text-anchor", "middle")
-    .text(d => d.data.name);
+    .text(d => {
+  if (d.data.orderLabel) {
+    return d.data.name + " (" + d.data.orderLabel + ")";
+  }
+  return d.data.name;
+});
 }
 
 // 🔄 LOAD TREE
