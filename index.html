@@ -22,7 +22,15 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 // 🔥 CONFIG FIREBASE
 const firebaseConfig = {
@@ -49,7 +57,32 @@ window.addPerson = async function() {
   alert("Data berhasil ditambahkan!");
 
   loadTree();
-  loadFatherOptions(); // 🔥 update dropdown
+  loadFatherOptions();
+};
+
+// 🗑️ HAPUS DATA
+window.deletePerson = async function(id) {
+  if (confirm("Yakin mau hapus?")) {
+    await deleteDoc(doc(db, "people", id));
+    loadTree();
+    loadFatherOptions();
+  }
+};
+
+// ✏️ EDIT DATA
+window.editPerson = async function(id, oldName, oldBirth) {
+  const newName = prompt("Edit nama:", oldName);
+  const newBirth = prompt("Edit tanggal lahir:", oldBirth);
+
+  if (newName) {
+    await updateDoc(doc(db, "people", id), {
+      name: newName,
+      birth_date: newBirth
+    });
+
+    loadTree();
+    loadFatherOptions();
+  }
 };
 
 // 📥 AMBIL DATA
@@ -64,7 +97,7 @@ async function getPeople() {
     });
   });
 
-  // 🔥 URUTKAN BERDASARKAN TANGGAL LAHIR
+  // urut tanggal lahir
   people.sort((a, b) => {
     if (!a.birth_date) return 1;
     if (!b.birth_date) return -1;
@@ -74,7 +107,7 @@ async function getPeople() {
   return people;
 }
 
-// 🌳 BANGUN TREE
+// 🌳 BUILD TREE
 function buildTree(people) {
   let map = {};
   let root = null;
@@ -91,7 +124,6 @@ function buildTree(people) {
     }
   });
 
-  // 🔥 LABEL ANAK KE-
   function addOrder(node) {
     if (!node.children) return;
 
@@ -106,11 +138,11 @@ function buildTree(people) {
   return root;
 }
 
-// 🎨 GAMBAR TREE
+// 🎨 DRAW TREE (HORIZONTAL)
 function drawTree(data) {
   document.getElementById("tree").innerHTML = "";
 
-  const width = 900;
+  const width = 1000;
   const height = 500;
 
   const svg = d3.select("#tree")
@@ -119,7 +151,7 @@ function drawTree(data) {
     .attr("height", height);
 
   const root = d3.hierarchy(data);
-  const treeLayout = d3.tree().size([width - 100, height - 100]);
+  const treeLayout = d3.tree().size([height - 100, width - 200]);
 
   treeLayout(root);
 
@@ -128,10 +160,10 @@ function drawTree(data) {
     .data(root.links())
     .enter()
     .append("line")
-    .attr("x1", d => d.source.x)
-    .attr("y1", d => d.source.y)
-    .attr("x2", d => d.target.x)
-    .attr("y2", d => d.target.y)
+    .attr("x1", d => d.source.y)
+    .attr("y1", d => d.source.x)
+    .attr("x2", d => d.target.y)
+    .attr("y2", d => d.target.x)
     .attr("stroke", "black");
 
   // node
@@ -139,7 +171,7 @@ function drawTree(data) {
     .data(root.descendants())
     .enter()
     .append("g")
-    .attr("transform", d => `translate(${d.x}, ${d.y})`);
+    .attr("transform", d => `translate(${d.y}, ${d.x})`);
 
   nodes.append("circle")
     .attr("r", 20)
@@ -153,6 +185,28 @@ function drawTree(data) {
         return d.data.name + " (" + d.data.orderLabel + ")";
       }
       return d.data.name;
+    });
+
+  // tombol edit
+  nodes.append("text")
+    .attr("dy", 35)
+    .attr("text-anchor", "middle")
+    .style("fill", "blue")
+    .style("cursor", "pointer")
+    .text("Edit")
+    .on("click", (event, d) => {
+      editPerson(d.data.id, d.data.name, d.data.birth_date);
+    });
+
+  // tombol hapus
+  nodes.append("text")
+    .attr("dy", 50)
+    .attr("text-anchor", "middle")
+    .style("fill", "red")
+    .style("cursor", "pointer")
+    .text("Hapus")
+    .on("click", (event, d) => {
+      deletePerson(d.data.id);
     });
 }
 
@@ -171,7 +225,7 @@ async function loadFatherOptions() {
   });
 }
 
-// 🔄 LOAD TREE
+// 🔄 LOAD
 async function loadTree() {
   const people = await getPeople();
   const treeData = buildTree(people);
