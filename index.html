@@ -3,22 +3,85 @@
 <head>
   <title>Poparan Opung Iren Marbun</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #ffffff);
+      margin: 0;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #333;
+    }
+
+    .container {
+      display: flex;
+      gap: 20px;
+    }
+
+    .form-box {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 300px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .form-box input, .form-box select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .form-box button {
+      width: 100%;
+      padding: 10px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .tree-box {
+      flex: 1;
+      background: white;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+  </style>
 </head>
+
 <body>
 
-<h2>Tambah Anggota Keluarga</h2>
+<h2>🌳 Poparan Opung Iren Marbun</h2>
 
-<input id="name" placeholder="Nama"><br>
-<input id="birth" type="date"><br>
+<div class="container">
 
-<select id="father">
-  <option value="">-- Pilih Ayah (Root jika kosong) --</option>
-</select><br><br>
+  <div class="form-box">
+    <h3>Tambah Anggota</h3>
 
-<button onclick="addPerson()">Tambah</button>
+    <input id="name" placeholder="Nama">
+    <input id="birth" type="date">
 
-<h2>Pohon Keluarga</h2>
-<div id="tree"></div>
+    <select id="father">
+      <option value="">-- Pilih Ayah --</option>
+    </select>
+
+    <button onclick="addPerson()">Tambah</button>
+  </div>
+
+  <div class="tree-box">
+    <div id="tree"></div>
+  </div>
+
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
@@ -32,7 +95,7 @@ import {
   updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-// 🔥 CONFIG FIREBASE
+// 🔥 FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyAwb3uKq12i0VKYQnLfpmFnOUyosbcJXUI",
   authDomain: "poparan-opung-iren-marbun.firebaseapp.com",
@@ -42,42 +105,37 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ➕ TAMBAH DATA
+// ➕ TAMBAH
 window.addPerson = async function() {
   const name = document.getElementById("name").value;
   const birth = document.getElementById("birth").value;
   const father = document.getElementById("father").value;
 
   await addDoc(collection(db, "people"), {
-    name: name,
-    birth_date: birth,
-    father_id: father || null
+    name, birth_date: birth, father_id: father || null
   });
-
-  alert("Data berhasil ditambahkan!");
 
   loadTree();
   loadFatherOptions();
 };
 
-// 🗑️ HAPUS DATA
+// 🗑️ HAPUS
 window.deletePerson = async function(id) {
-  if (confirm("Yakin mau hapus?")) {
+  if (confirm("Hapus data?")) {
     await deleteDoc(doc(db, "people", id));
     loadTree();
     loadFatherOptions();
   }
 };
 
-// ✏️ EDIT DATA
+// ✏️ EDIT
 window.editPerson = async function(id, oldName, oldBirth) {
-  const newName = prompt("Edit nama:", oldName);
-  const newBirth = prompt("Edit tanggal lahir:", oldBirth);
+  const name = prompt("Nama:", oldName);
+  const birth = prompt("Tanggal:", oldBirth);
 
-  if (newName) {
+  if (name) {
     await updateDoc(doc(db, "people", id), {
-      name: newName,
-      birth_date: newBirth
+      name, birth_date: birth
     });
 
     loadTree();
@@ -85,36 +143,24 @@ window.editPerson = async function(id, oldName, oldBirth) {
   }
 };
 
-// 📥 AMBIL DATA
+// 📥 GET DATA
 async function getPeople() {
   const snapshot = await getDocs(collection(db, "people"));
   let people = [];
 
   snapshot.forEach(doc => {
-    people.push({
-      id: doc.id,
-      ...doc.data()
-    });
+    people.push({ id: doc.id, ...doc.data() });
   });
 
-  // urut tanggal lahir
-  people.sort((a, b) => {
-    if (!a.birth_date) return 1;
-    if (!b.birth_date) return -1;
-    return new Date(a.birth_date) - new Date(b.birth_date);
-  });
-
+  people.sort((a, b) => new Date(a.birth_date) - new Date(b.birth_date));
   return people;
 }
 
 // 🌳 BUILD TREE
 function buildTree(people) {
-  let map = {};
-  let root = null;
+  let map = {}, root = null;
 
-  people.forEach(p => {
-    map[p.id] = { ...p, children: [] };
-  });
+  people.forEach(p => map[p.id] = { ...p, children: [] });
 
   people.forEach(p => {
     if (p.father_id && map[p.father_id]) {
@@ -125,20 +171,17 @@ function buildTree(people) {
   });
 
   function addOrder(node) {
-    if (!node.children) return;
-
-    node.children.forEach((child, index) => {
-      child.orderLabel = `Anak ke-${index + 1}`;
-      addOrder(child);
+    node.children.forEach((c, i) => {
+      c.orderLabel = `Anak ke-${i+1}`;
+      addOrder(c);
     });
   }
 
   if (root) addOrder(root);
-
   return root;
 }
 
-// 🎨 DRAW TREE (HORIZONTAL)
+// 🎨 DRAW TREE (PRO UI)
 function drawTree(data) {
   document.getElementById("tree").innerHTML = "";
 
@@ -148,94 +191,122 @@ function drawTree(data) {
   const svg = d3.select("#tree")
     .append("svg")
     .attr("width", width)
-    .attr("height", height);
+    .attr("height", height)
+    .call(d3.zoom().on("zoom", (event) => {
+      g.attr("transform", event.transform);
+    }));
+
+  const g = svg.append("g");
 
   const root = d3.hierarchy(data);
   const treeLayout = d3.tree().size([height - 100, width - 200]);
-
   treeLayout(root);
 
-  // garis
-  svg.selectAll("line")
+  // 🌿 garis smooth
+  g.selectAll("path")
     .data(root.links())
     .enter()
-    .append("line")
-    .attr("x1", d => d.source.y)
-    .attr("y1", d => d.source.x)
-    .attr("x2", d => d.target.y)
-    .attr("y2", d => d.target.x)
-    .attr("stroke", "black");
+    .append("path")
+    .attr("fill", "none")
+    .attr("stroke", "#90caf9")
+    .attr("stroke-width", 2)
+    .attr("d", d => `
+      M${d.source.y},${d.source.x}
+      C${(d.source.y + d.target.y)/2},${d.source.x}
+       ${(d.source.y + d.target.y)/2},${d.target.x}
+       ${d.target.y},${d.target.x}
+    `);
 
-  // node
-  const nodes = svg.selectAll("g")
+  const nodes = g.selectAll("g")
     .data(root.descendants())
     .enter()
     .append("g")
     .attr("transform", d => `translate(${d.y}, ${d.x})`);
 
-  nodes.append("circle")
-    .attr("r", 20)
-    .attr("fill", "lightblue");
+  // 🧱 card node
+  const node = nodes.append("g");
 
-  nodes.append("text")
-    .attr("dy", 5)
+  node.append("rect")
+    .attr("x", -50)
+    .attr("y", -25)
+    .attr("width", 100)
+    .attr("height", 50)
+    .attr("rx", 10)
+    .attr("fill", "#fff")
+    .attr("stroke", "#90caf9")
+    .style("filter", "drop-shadow(0px 4px 6px rgba(0,0,0,0.1))");
+
+  node.append("text")
+    .attr("dy", -2)
     .attr("text-anchor", "middle")
-    .text(d => {
-      if (d.data.orderLabel) {
-        return d.data.name + " (" + d.data.orderLabel + ")";
-      }
-      return d.data.name;
-    });
+    .style("font-weight", "bold")
+    .text(d => d.data.name);
 
-  // tombol edit
-  nodes.append("text")
-    .attr("dy", 35)
+  node.append("text")
+    .attr("dy", 12)
+    .attr("text-anchor", "middle")
+    .style("font-size", "10px")
+    .text(d => d.data.orderLabel || "");
+
+  // tombol
+  node.append("text")
+    .attr("dy", 28)
     .attr("text-anchor", "middle")
     .style("fill", "blue")
     .style("cursor", "pointer")
-    .text("Edit")
-    .on("click", (event, d) => {
-      editPerson(d.data.id, d.data.name, d.data.birth_date);
+    .text("✏️")
+    .on("click", (e,d)=>{
+      e.stopPropagation();
+      editPerson(d.data.id,d.data.name,d.data.birth_date);
     });
 
-  // tombol hapus
-  nodes.append("text")
-    .attr("dy", 50)
+  node.append("text")
+    .attr("dy", 40)
     .attr("text-anchor", "middle")
     .style("fill", "red")
     .style("cursor", "pointer")
-    .text("Hapus")
-    .on("click", (event, d) => {
+    .text("🗑️")
+    .on("click", (e,d)=>{
+      e.stopPropagation();
       deletePerson(d.data.id);
     });
+
+  // ✨ animasi
+  nodes.style("opacity", 0)
+    .transition()
+    .duration(800)
+    .style("opacity", 1);
+
+  // hover
+  node.on("mouseover", function() {
+    d3.select(this).select("rect").attr("fill", "#e3f2fd");
+  }).on("mouseout", function() {
+    d3.select(this).select("rect").attr("fill", "#fff");
+  });
 }
 
-// 🔽 DROPDOWN AYAH
+// dropdown
 async function loadFatherOptions() {
   const people = await getPeople();
   const select = document.getElementById("father");
 
-  select.innerHTML = '<option value="">-- Pilih Ayah (Root jika kosong) --</option>';
+  select.innerHTML = '<option value="">-- Pilih Ayah --</option>';
 
   people.forEach(p => {
-    const option = document.createElement("option");
-    option.value = p.id;
-    option.text = p.name;
-    select.appendChild(option);
+    const o = document.createElement("option");
+    o.value = p.id;
+    o.text = p.name;
+    select.appendChild(o);
   });
 }
 
-// 🔄 LOAD
+// load
 async function loadTree() {
   const people = await getPeople();
   const treeData = buildTree(people);
-
-  if (treeData) {
-    drawTree(treeData);
-  }
+  if (treeData) drawTree(treeData);
 }
 
-// 🚀 AUTO LOAD
 loadTree();
 loadFatherOptions();
 
