@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Poparan Opung Iren Marbun</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+
+<h2>Tambah Anggota Keluarga</h2>
+
+<input id="name" placeholder="Nama"><br>
+<input id="birth" type="date"><br>
+<input id="father" placeholder="ID Ayah"><br>
+
+<button onclick="addPerson()">Tambah</button>
+
+<h2>Pohon Keluarga</h2>
+<div id="tree"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "ISI_API_KEY",
+  authDomain: "ISI_DOMAIN",
+  projectId: "ISI_PROJECT_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.addPerson = async function() {
+  const name = document.getElementById("name").value;
+  const birth = document.getElementById("birth").value;
+  const father = document.getElementById("father").value;
+
+  await addDoc(collection(db, "people"), {
+    name: name,
+    birth_date: birth,
+    father_id: father || null
+  });
+
+  loadTree();
+};
+
+async function getPeople() {
+  const snapshot = await getDocs(collection(db, "people"));
+  let people = [];
+
+  snapshot.forEach(doc => {
+    people.push({
+      id: doc.id,
+      ...doc.data()
+    });
+  });
+
+  return people;
+}
+
+function buildTree(people) {
+  let map = {};
+  let root = null;
+
+  people.forEach(p => {
+    map[p.id] = { ...p, children: [] };
+  });
+
+  people.forEach(p => {
+    if (p.father_id && map[p.father_id]) {
+      map[p.father_id].children.push(map[p.id]);
+    } else {
+      root = map[p.id];
+    }
+  });
+
+  return root;
+}
+</script>
+
+<script>
+function drawTree(data) {
+  document.getElementById("tree").innerHTML = "";
+
+  const width = 900;
+  const height = 500;
+
+  const svg = d3.select("#tree")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  const root = d3.hierarchy(data);
+  const treeLayout = d3.tree().size([width - 100, height - 100]);
+
+  treeLayout(root);
+
+  svg.selectAll("line")
+    .data(root.links())
+    .enter()
+    .append("line")
+    .attr("x1", d => d.source.x)
+    .attr("y1", d => d.source.y)
+    .attr("x2", d => d.target.x)
+    .attr("y2", d => d.target.y)
+    .attr("stroke", "black");
+
+  const nodes = svg.selectAll("g")
+    .data(root.descendants())
+    .enter()
+    .append("g")
+    .attr("transform", d => `translate(${d.x}, ${d.y})`);
+
+  nodes.append("circle")
+    .attr("r", 20)
+    .attr("fill", "lightblue");
+
+  nodes.append("text")
+    .attr("dy", 5)
+    .attr("text-anchor", "middle")
+    .text(d => d.data.name);
+}
+
+async function loadTree() {
+  const people = await getPeople();
+  const treeData = buildTree(people);
+
+  if (treeData) drawTree(treeData);
+}
+
+loadTree();
+</script>
+
+</body>
+</html>
