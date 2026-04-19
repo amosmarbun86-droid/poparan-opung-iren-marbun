@@ -60,6 +60,11 @@ async function getPeople() {
     });
   });
 
+  // 🔥 URUTKAN BERDASARKAN TANGGAL LAHIR (TERTUA → TERMUDA)
+  people.sort((a, b) => {
+    return new Date(a.birth_date) - new Date(b.birth_date);
+  });
+
   return people;
 }
 
