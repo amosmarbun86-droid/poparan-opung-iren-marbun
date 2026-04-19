@@ -10,7 +10,10 @@
 
 <input id="name" placeholder="Nama"><br>
 <input id="birth" type="date"><br>
-<input id="father" placeholder="ID Ayah (kosongkan jika root)"><br>
+
+<select id="father">
+  <option value="">-- Pilih Ayah (Root jika kosong) --</option>
+</select><br><br>
 
 <button onclick="addPerson()">Tambah</button>
 
@@ -46,6 +49,7 @@ window.addPerson = async function() {
   alert("Data berhasil ditambahkan!");
 
   loadTree();
+  loadFatherOptions(); // 🔥 update dropdown
 };
 
 // 📥 AMBIL DATA
@@ -60,15 +64,17 @@ async function getPeople() {
     });
   });
 
-  // 🔥 URUTKAN BERDASARKAN TANGGAL LAHIR (TERTUA → TERMUDA)
+  // 🔥 URUTKAN BERDASARKAN TANGGAL LAHIR
   people.sort((a, b) => {
+    if (!a.birth_date) return 1;
+    if (!b.birth_date) return -1;
     return new Date(a.birth_date) - new Date(b.birth_date);
   });
 
   return people;
 }
 
-// 🌳 BANGUN STRUKTUR TREE
+// 🌳 BANGUN TREE
 function buildTree(people) {
   let map = {};
   let root = null;
@@ -85,7 +91,7 @@ function buildTree(people) {
     }
   });
 
-  // 🔥 TAMBAH NOMOR URUT ANAK
+  // 🔥 LABEL ANAK KE-
   function addOrder(node) {
     if (!node.children) return;
 
@@ -100,7 +106,7 @@ function buildTree(people) {
   return root;
 }
 
-// 🎨 GAMBAR TREE (D3)
+// 🎨 GAMBAR TREE
 function drawTree(data) {
   document.getElementById("tree").innerHTML = "";
 
@@ -143,19 +149,32 @@ function drawTree(data) {
     .attr("dy", 5)
     .attr("text-anchor", "middle")
     .text(d => {
-  if (d.data.orderLabel) {
-    return d.data.name + " (" + d.data.orderLabel + ")";
-  }
-  return d.data.name;
-});
+      if (d.data.orderLabel) {
+        return d.data.name + " (" + d.data.orderLabel + ")";
+      }
+      return d.data.name;
+    });
+}
+
+// 🔽 DROPDOWN AYAH
+async function loadFatherOptions() {
+  const people = await getPeople();
+  const select = document.getElementById("father");
+
+  select.innerHTML = '<option value="">-- Pilih Ayah (Root jika kosong) --</option>';
+
+  people.forEach(p => {
+    const option = document.createElement("option");
+    option.value = p.id;
+    option.text = p.name;
+    select.appendChild(option);
+  });
 }
 
 // 🔄 LOAD TREE
 async function loadTree() {
   const people = await getPeople();
   const treeData = buildTree(people);
-
-  console.log(people);
 
   if (treeData) {
     drawTree(treeData);
@@ -164,6 +183,7 @@ async function loadTree() {
 
 // 🚀 AUTO LOAD
 loadTree();
+loadFatherOptions();
 
 </script>
 
