@@ -157,14 +157,41 @@ async function getPeople(){
 
 /* TREE */
 function buildTree(data){
-  let map={},roots=[];
-  data.forEach(p=>map[p.id]={...p,children:[]});
+  let map={}, roots=[];
+
+  // buat map
+  data.forEach(p=>{
+    map[p.id]={...p,children:[]};
+  });
+
+  // susun parent-child
   data.forEach(p=>{
     if(p.father_id && map[p.father_id]){
       map[p.father_id].children.push(map[p.id]);
-    } else roots.push(map[p.id]);
+    } else {
+      roots.push(map[p.id]);
+    }
   });
-  return roots.length===1?roots[0]:{name:"ROOT",children:roots};
+
+  // 🔥 SORT + URUTAN ANAK
+  function sortChildren(node){
+    if(!node.children) return;
+
+    // urut berdasarkan tanggal lahir
+    node.children.sort((a,b)=>{
+      return new Date(a.birth_date || 0) - new Date(b.birth_date || 0);
+    });
+
+    // kasih label anak ke-
+    node.children.forEach((child,i)=>{
+      child.orderLabel = "Anak ke-" + (i+1);
+      sortChildren(child); // rekursif ke cucu
+    });
+  }
+
+  roots.forEach(r=>sortChildren(r));
+
+  return roots.length===1 ? roots[0] : {name:"ROOT",children:roots};
 }
 
 /* DRAW */
@@ -211,6 +238,12 @@ function drawTree(data){
   nodes.append("text")
     .attr("text-anchor","middle")
     .text(d=>d.data.name);
+
+  nodes.append("text")
+  .attr("text-anchor","middle")
+  .attr("dy","12")
+  .style("font-size","10px")
+  .text(d=>d.data.orderLabel || "");
 
   nodes.append("text")
     .attr("dy","25")
