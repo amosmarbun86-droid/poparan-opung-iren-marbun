@@ -109,17 +109,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* ================= CRUD ================= */
+
 window.addPerson = async function() {
   const n = name.value.trim();
   const b = birth.value;
   const f = father.value;
 
   if(!n) return alert("Nama wajib diisi!");
-  
-  // 👉 hanya boleh 1 root (opsional tapi disarankan)
+
   const people = await getPeople();
   if(!f && people.length > 0){
-    return alert("Pilih ayah! Hanya 1 orang tanpa ayah (root).");
+    return alert("Pilih ayah! (hanya 1 root)");
   }
 
   await addDoc(collection(db, "people"), {
@@ -128,19 +129,17 @@ window.addPerson = async function() {
     father_id: f || null
   });
 
-  // reset input
-  name.value = "";
-  birth.value = "";
-  father.value = "";
+  name.value="";
+  birth.value="";
+  father.value="";
 
-  loadTree();
-  loadFatherOptions();
+  loadAll();
 };
 
 window.deletePerson = async function(id) {
   if (confirm("Hapus data?")) {
     await deleteDoc(doc(db, "people", id));
-    loadTree(); loadFatherOptions();
+    loadAll();
   }
 };
 
@@ -148,8 +147,11 @@ window.editPerson = async function(id, n, b) {
   const nn = prompt("Nama:", n);
   const bb = prompt("Tanggal:", b);
   if (nn) {
-    await updateDoc(doc(db, "people", id), { name: nn, birth_date: bb });
-    loadTree(); loadFatherOptions();
+    await updateDoc(doc(db, "people", id), {
+      name: nn,
+      birth_date: bb
+    });
+    loadAll();
   }
 };
 
@@ -157,19 +159,22 @@ async function getPeople(){
   const s = await getDocs(collection(db,"people"));
   let arr=[];
   s.forEach(d=>arr.push({id:d.id,...d.data()}));
+
+  // urut global
+  arr.sort((a,b)=>new Date(a.birth_date||0)-new Date(b.birth_date||0));
+
   return arr;
 }
 
-/* TREE + WARNA + GENERASI */
+/* ================= TREE ================= */
+
 function buildTree(data){
   let map={}, roots=[];
 
-  // mapping
   data.forEach(p=>{
     map[p.id]={...p, children:[]};
   });
 
-  // relasi parent-child
   data.forEach(p=>{
     if(p.father_id && map[p.father_id]){
       map[p.father_id].children.push(map[p.id]);
@@ -178,69 +183,52 @@ function buildTree(data){
     }
   });
 
-  // handle multi root
   let root;
-  if(roots.length === 1){
+  if(roots.length===1){
     root = roots[0];
   } else {
-    root = {
-      name: "KELUARGA",
-      children: roots
-    };
+    root = { name:"KELUARGA", children:roots };
   }
 
-  // warna cabang
   const colors = ["#4CAF50","#2196F3","#FF9800","#9C27B0","#E91E63"];
 
   function process(node, depth=1, color=null){
 
     node.generation = "Gen-" + depth;
 
-    // safety (hindari error undefined)
-    if(!node.children || node.children.length === 0) return;
+    if(!node.children || node.children.length===0) return;
 
-    // urut berdasarkan tanggal lahir
-    node.children.sort((a,b)=>{
-      return new Date(a.birth_date || 0) - new Date(b.birth_date || 0);
-    });
+    node.children.sort((a,b)=>new Date(a.birth_date||0)-new Date(b.birth_date||0));
 
     node.children.forEach((c,i)=>{
       c.orderLabel = "Anak ke-" + (i+1);
-
-      // warna cabang dari anak root
-      c.color = depth === 1 ? colors[i % colors.length] : color;
-
+      c.color = depth===1 ? colors[i%colors.length] : color;
       process(c, depth+1, c.color);
     });
 
-    // warna root
-    if(depth === 1){
-      node.color = "#333";
-    }
+    if(depth===1) node.color="#333";
   }
 
   process(root);
-
   return root;
 }
 
-/* DRAW ORG CHART */
+/* ================= DRAW ================= */
+
 function drawTree(data){
-  document.getElementById("tree").innerHTML="";
+  tree.innerHTML="";
 
   const svg = d3.select("#tree").append("svg")
-    .attr("width", 1200)
-    .attr("height", 700)
+    .attr("width", 1400)
+    .attr("height", 800)
     .call(d3.zoom().on("zoom",(e)=>g.attr("transform",e.transform)));
 
-  const g = svg.append("g").attr("transform","translate(50,50)");
+  const g = svg.append("g").attr("transform","translate(80,80)");
 
   const root = d3.hierarchy(data);
+  d3.tree().nodeSize([140,100])(root);
 
-  const treeLayout = d3.tree().nodeSize([140,100]);
-  treeLayout(root);
-
-  /* GARIS SIKU */
+  // garis siku
   g.selectAll("path")
     .data(root.links())
     .enter()
@@ -259,9 +247,12 @@ function drawTree(data){
     .enter()
     .append("g")
     .attr("class","node")
-    .attr("transform",d=>`translate(${d.x},${d.y})`);
+    .attr("transform",d=>`translate(${d.x},${d.y})`)
+    .on("click",(e,d)=>{
+      father.value = d.data.id; // 🔥 klik jadi ayah
+    });
 
-  /* CARD */
+  // card
   nodes.append("rect")
     .attr("x",-60)
     .attr("y",-30)
@@ -272,56 +263,4 @@ function drawTree(data){
     .attr("stroke",d=>d.data.color||"#333")
     .style("filter","drop-shadow(0px 4px 6px rgba(0,0,0,0.1))");
 
-  nodes.append("text")
-    .attr("text-anchor","middle")
-    .attr("dy","-5")
-    .style("font-weight","bold")
-    .text(d=>d.data.name);
-
-  nodes.append("text")
-    .attr("text-anchor","middle")
-    .attr("dy","10")
-    .style("font-size","10px")
-    .text(d=>d.data.orderLabel||"");
-
-  nodes.append("text")
-    .attr("text-anchor","middle")
-    .attr("dy","22")
-    .style("font-size","9px")
-    .text(d=>d.data.generation||"");
-
-  nodes.append("text")
-    .attr("dy","36")
-    .attr("text-anchor","middle")
-    .text("✏️")
-    .on("click",(e,d)=>{e.stopPropagation();editPerson(d.data.id,d.data.name,d.data.birth_date);});
-
-  nodes.append("text")
-    .attr("dy","48")
-    .attr("text-anchor","middle")
-    .text("🗑️")
-    .on("click",(e,d)=>{e.stopPropagation();deletePerson(d.data.id);});
-}
-
-async function loadTree(){
-  const data=await getPeople();
-  const t=buildTree(data);
-  if(t) drawTree(t);
-}
-
-async function loadFatherOptions(){
-  const people=await getPeople();
-  father.innerHTML='<option value="">-- Pilih Ayah --</option>';
-  people.forEach(p=>{
-    let o=document.createElement("option");
-    o.value=p.id;o.text=p.name;
-    father.appendChild(o);
-  });
-}
-
-loadTree();
-loadFatherOptions();
-</script>
-
-</body>
-</html>
+  nodes
