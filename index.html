@@ -9,32 +9,18 @@
 <script src="https://d3js.org/d3.v7.min.js"></script>
 
 <style>
-body {
-  margin:0;
-  padding:10px;
-  font-family:'Cinzel', serif;
-}
+body { margin:0; padding:10px; font-family:'Cinzel', serif; }
 
-/* BACKGROUND ULOS */
+/* BACKGROUND */
 body::before{
-  content:"";
-  position:fixed;
-  width:200%;
-  height:200%;
-  background:#8B0000;
-  opacity:0.2;
-  z-index:-2;
+  content:""; position:fixed; width:200%; height:200%;
+  background:#8B0000; opacity:0.2; z-index:-2;
 }
 body::after{
-  content:"";
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:#fff8f0;
-  z-index:-1;
+  content:""; position:fixed; width:100%; height:100%;
+  background:#fff8f0; z-index:-1;
 }
 
-/* UI */
 .header{text-align:center;color:#8B0000;}
 .form-box{background:#fff;padding:15px;border:2px solid #8B0000;border-radius:10px;}
 .form-box input,.form-box select{width:100%;padding:10px;margin:5px 0;}
@@ -43,14 +29,11 @@ body::after{
 .tree-box{border:2px solid #8B0000;border-radius:10px;margin-top:10px;overflow:auto;height:75vh;}
 #tree svg{touch-action:none}
 
-/* NODE */
 .node{opacity:0.3}
-.node-box{fill:#fff8f0;stroke:#8B0000;stroke-width:2;rx:12}
+.node-box{stroke-width:2;rx:12}
 
-/* LINK */
 .link{stroke:#ccc;stroke-width:2;opacity:0.3}
 
-/* ACTIVE */
 .active-node{opacity:1 !important}
 .active-link{
   stroke:#ff0000 !important;
@@ -59,27 +42,14 @@ body::after{
   filter: drop-shadow(0 0 6px red);
 }
 
-/* SEARCH */
-.search-box{
-  margin:10px 0;
-}
-.search-box input{
-  width:100%;
-  padding:10px;
-  border:2px solid #8B0000;
-}
+.search-box{margin:10px 0;}
+.search-box input{width:100%;padding:10px;border:2px solid #8B0000;}
 
-/* POPUP */
 #popup{
-  position:fixed;
-  top:50%;
-  left:50%;
+  position:fixed; top:50%; left:50%;
   transform:translate(-50%,-50%);
-  background:white;
-  padding:20px;
-  border-radius:10px;
-  display:none;
-  z-index:999;
+  background:white; padding:20px;
+  border-radius:10px; display:none; z-index:999;
 }
 </style>
 </head>
@@ -155,43 +125,46 @@ async function getPeople(){
   return arr;
 }
 
-/* TREE */
+/* TREE (GEN + COLOR + SORT) */
 function buildTree(data){
   let map={}, roots=[];
 
-  // buat map
-  data.forEach(p=>{
-    map[p.id]={...p,children:[]};
-  });
+  data.forEach(p=>map[p.id]={...p,children:[]});
 
-  // susun parent-child
   data.forEach(p=>{
     if(p.father_id && map[p.father_id]){
       map[p.father_id].children.push(map[p.id]);
-    } else {
-      roots.push(map[p.id]);
-    }
+    } else roots.push(map[p.id]);
   });
 
-  // 🔥 SORT + URUTAN ANAK
-  function sortChildren(node){
-    if(!node.children) return;
+  // warna cabang
+  const colors=["#e74c3c","#3498db","#27ae60","#f1c40f","#9b59b6","#e67e22","#1abc9c"];
 
-    // urut berdasarkan tanggal lahir
-    node.children.sort((a,b)=>{
-      return new Date(a.birth_date || 0) - new Date(b.birth_date || 0);
+  function process(node, depth=1, color=null){
+    node.generation="Gen-"+depth;
+
+    // sort anak
+    node.children.sort((a,b)=>new Date(a.birth_date||0)-new Date(b.birth_date||0));
+
+    node.children.forEach((c,i)=>{
+      c.orderLabel="Anak ke-"+(i+1);
+
+      if(depth===1){
+        c.color=colors[i%colors.length];
+      }else{
+        c.color=color;
+      }
+
+      process(c, depth+1, c.color);
     });
 
-    // kasih label anak ke-
-    node.children.forEach((child,i)=>{
-      child.orderLabel = "Anak ke-" + (i+1);
-      sortChildren(child); // rekursif ke cucu
-    });
+    if(depth===1){
+      node.color="#8B0000";
+    }
   }
 
-  roots.forEach(r=>sortChildren(r));
-
-  return roots.length===1 ? roots[0] : {name:"ROOT",children:roots};
+  roots.forEach(r=>process(r));
+  return roots.length===1?roots[0]:{name:"ROOT",children:roots};
 }
 
 /* DRAW */
@@ -206,59 +179,62 @@ function drawTree(data){
   const root=d3.hierarchy(data);
   d3.tree().size([window.innerHeight-100,window.innerWidth-200])(root);
 
-  /* LINKS */
   const links=g.selectAll("path")
     .data(root.links())
     .enter().append("path")
     .attr("class","link")
+    .attr("stroke",d=>d.source.data.color||"#ccc")
     .attr("d",d=>`M${d.source.y},${d.source.x}
     C${(d.source.y+d.target.y)/2},${d.source.x}
      ${(d.source.y+d.target.y)/2},${d.target.x}
      ${d.target.y},${d.target.x}`);
 
-  /* NODES */
   const nodes=g.selectAll("g")
     .data(root.descendants())
     .enter().append("g")
     .attr("class","node")
     .attr("transform",d=>`translate(${d.y},${d.x})`)
-    .on("click",(e,d)=>{
-      highlightFull(d);
-      showPopup(d.data);
-    });
+    .on("click",(e,d)=>{highlightFull(d);showPopup(d.data);});
 
   nodes.each(function(d){ d.el=this; });
-  allNodes = nodes.data();
+  allNodes=nodes.data();
 
   nodes.append("rect")
-    .attr("class","node-box")
     .attr("x",-60).attr("y",-25)
-    .attr("width",120).attr("height",50);
+    .attr("width",120).attr("height",50)
+    .attr("fill",d=>d.data.color||"#fff8f0")
+    .attr("stroke",d=>d.data.color||"#8B0000");
 
   nodes.append("text")
     .attr("text-anchor","middle")
     .text(d=>d.data.name);
 
   nodes.append("text")
-  .attr("text-anchor","middle")
-  .attr("dy","12")
-  .style("font-size","10px")
-  .text(d=>d.data.orderLabel || "");
+    .attr("dy","12")
+    .attr("text-anchor","middle")
+    .style("font-size","10px")
+    .text(d=>d.data.orderLabel||"");
 
   nodes.append("text")
-    .attr("dy","25")
+    .attr("dy","24")
+    .attr("text-anchor","middle")
+    .style("font-size","9px")
+    .text(d=>d.data.generation||"");
+
+  nodes.append("text")
+    .attr("dy","38")
     .attr("text-anchor","middle")
     .text("✏️")
     .on("click",(e,d)=>{e.stopPropagation();editPerson(d.data.id,d.data.name,d.data.birth_date);});
 
   nodes.append("text")
-    .attr("dy","38")
+    .attr("dy","50")
     .attr("text-anchor","middle")
     .text("🗑️")
     .on("click",(e,d)=>{e.stopPropagation();deletePerson(d.data.id);});
 }
 
-/* HIGHLIGHT FULL */
+/* HIGHLIGHT */
 function highlightFull(d){
   d3.selectAll(".node").classed("active-node",false);
   d3.selectAll(".link").classed("active-link",false);
@@ -283,19 +259,15 @@ function highlightFull(d){
     }
   }
 
-  up(d);
-  down(d);
+  up(d); down(d);
 }
 
 /* SEARCH */
-search.oninput = function(){
-  const val = this.value.toLowerCase();
+search.oninput=function(){
+  const val=this.value.toLowerCase();
   if(!val) return;
-
-  const found = allNodes.find(n => n.data.name.toLowerCase().includes(val));
-  if(found){
-    highlightFull(found);
-  }
+  const f=allNodes.find(n=>n.data.name.toLowerCase().includes(val));
+  if(f) highlightFull(f);
 };
 
 /* POPUP */
