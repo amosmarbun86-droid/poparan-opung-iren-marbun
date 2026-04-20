@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Poparan Opung Iren Marbun</title>
+  <title>Poparan Opung Iren Marbun (Vertical)</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
 
   <style>
@@ -19,6 +19,7 @@
     .container {
       display: flex;
       gap: 20px;
+      flex-wrap: wrap;
     }
 
     .form-box {
@@ -53,14 +54,14 @@
       border-radius: 12px;
       padding: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      overflow: hidden;
+      overflow: auto;
     }
   </style>
 </head>
 
 <body>
 
-<h2>🌳 Poparan Opung Iren Marbun</h2>
+<h2>🌳 Poparan Opung Iren Marbun (Vertical)</h2>
 
 <div class="container">
 
@@ -95,7 +96,6 @@ import {
   updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-// 🔥 FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyAwb3uKq12i0VKYQnLfpmFnOUyosbcJXUI",
   authDomain: "poparan-opung-iren-marbun.firebaseapp.com",
@@ -107,9 +107,9 @@ const db = getFirestore(app);
 
 // ➕ TAMBAH
 window.addPerson = async function() {
-  const name = document.getElementById("name").value;
-  const birth = document.getElementById("birth").value;
-  const father = document.getElementById("father").value;
+  const name = nameEl.value;
+  const birth = birthEl.value;
+  const father = fatherEl.value;
 
   await addDoc(collection(db, "people"), {
     name, birth_date: birth, father_id: father || null
@@ -181,12 +181,12 @@ function buildTree(people) {
   return root;
 }
 
-// 🎨 DRAW TREE (PRO UI)
+// 🎨 DRAW TREE (VERTICAL)
 function drawTree(data) {
   document.getElementById("tree").innerHTML = "";
 
   const width = 1000;
-  const height = 500;
+  const height = 700;
 
   const svg = d3.select("#tree")
     .append("svg")
@@ -196,13 +196,15 @@ function drawTree(data) {
       g.attr("transform", event.transform);
     }));
 
-  const g = svg.append("g");
+  const g = svg.append("g").attr("transform", "translate(50,50)");
 
   const root = d3.hierarchy(data);
-  const treeLayout = d3.tree().size([height - 100, width - 200]);
+
+  // 🔥 VERTICAL LAYOUT
+  const treeLayout = d3.tree().size([width - 100, height - 150]);
   treeLayout(root);
 
-  // 🌿 garis smooth
+  // garis (TOP → DOWN)
   g.selectAll("path")
     .data(root.links())
     .enter()
@@ -211,30 +213,28 @@ function drawTree(data) {
     .attr("stroke", "#90caf9")
     .attr("stroke-width", 2)
     .attr("d", d => `
-      M${d.source.y},${d.source.x}
-      C${(d.source.y + d.target.y)/2},${d.source.x}
-       ${(d.source.y + d.target.y)/2},${d.target.x}
-       ${d.target.y},${d.target.x}
+      M${d.source.x},${d.source.y}
+      C${d.source.x},${(d.source.y + d.target.y)/2}
+       ${d.target.x},${(d.source.y + d.target.y)/2}
+       ${d.target.x},${d.target.y}
     `);
 
   const nodes = g.selectAll("g")
     .data(root.descendants())
     .enter()
     .append("g")
-    .attr("transform", d => `translate(${d.y}, ${d.x})`);
+    .attr("transform", d => `translate(${d.x}, ${d.y})`);
 
-  // 🧱 card node
   const node = nodes.append("g");
 
   node.append("rect")
-    .attr("x", -50)
+    .attr("x", -60)
     .attr("y", -25)
-    .attr("width", 100)
+    .attr("width", 120)
     .attr("height", 50)
     .attr("rx", 10)
     .attr("fill", "#fff")
-    .attr("stroke", "#90caf9")
-    .style("filter", "drop-shadow(0px 4px 6px rgba(0,0,0,0.1))");
+    .attr("stroke", "#90caf9");
 
   node.append("text")
     .attr("dy", -2)
@@ -248,11 +248,9 @@ function drawTree(data) {
     .style("font-size", "10px")
     .text(d => d.data.orderLabel || "");
 
-  // tombol
   node.append("text")
     .attr("dy", 28)
     .attr("text-anchor", "middle")
-    .style("fill", "blue")
     .style("cursor", "pointer")
     .text("✏️")
     .on("click", (e,d)=>{
@@ -263,7 +261,6 @@ function drawTree(data) {
   node.append("text")
     .attr("dy", 40)
     .attr("text-anchor", "middle")
-    .style("fill", "red")
     .style("cursor", "pointer")
     .text("🗑️")
     .on("click", (e,d)=>{
@@ -271,18 +268,10 @@ function drawTree(data) {
       deletePerson(d.data.id);
     });
 
-  // ✨ animasi
   nodes.style("opacity", 0)
     .transition()
-    .duration(800)
+    .duration(600)
     .style("opacity", 1);
-
-  // hover
-  node.on("mouseover", function() {
-    d3.select(this).select("rect").attr("fill", "#e3f2fd");
-  }).on("mouseout", function() {
-    d3.select(this).select("rect").attr("fill", "#fff");
-  });
 }
 
 // dropdown
@@ -306,6 +295,10 @@ async function loadTree() {
   const treeData = buildTree(people);
   if (treeData) drawTree(treeData);
 }
+
+const nameEl = document.getElementById("name");
+const birthEl = document.getElementById("birth");
+const fatherEl = document.getElementById("father");
 
 loadTree();
 loadFatherOptions();
