@@ -110,12 +110,31 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 window.addPerson = async function() {
+  const n = name.value.trim();
+  const b = birth.value;
+  const f = father.value;
+
+  if(!n) return alert("Nama wajib diisi!");
+  
+  // 👉 hanya boleh 1 root (opsional tapi disarankan)
+  const people = await getPeople();
+  if(!f && people.length > 0){
+    return alert("Pilih ayah! Hanya 1 orang tanpa ayah (root).");
+  }
+
   await addDoc(collection(db, "people"), {
-    name: name.value,
-    birth_date: birth.value,
-    father_id: father.value || null
+    name: n,
+    birth_date: b || null,
+    father_id: f || null
   });
-  loadTree(); loadFatherOptions();
+
+  // reset input
+  name.value = "";
+  birth.value = "";
+  father.value = "";
+
+  loadTree();
+  loadFatherOptions();
 };
 
 window.deletePerson = async function(id) {
@@ -145,32 +164,64 @@ async function getPeople(){
 function buildTree(data){
   let map={}, roots=[];
 
-  data.forEach(p=>map[p.id]={...p,children:[]});
+  // mapping
+  data.forEach(p=>{
+    map[p.id]={...p, children:[]};
+  });
 
+  // relasi parent-child
   data.forEach(p=>{
     if(p.father_id && map[p.father_id]){
       map[p.father_id].children.push(map[p.id]);
-    } else roots.push(map[p.id]);
+    } else {
+      roots.push(map[p.id]);
+    }
   });
 
-  const colors=["#4CAF50","#2196F3","#FF9800","#9C27B0","#E91E63"];
-
-  function process(node,depth=1,color=null){
-    node.generation="Gen-"+depth;
-
-    node.children.sort((a,b)=>new Date(a.birth_date||0)-new Date(b.birth_date||0));
-
-    node.children.forEach((c,i)=>{
-      c.orderLabel="Anak ke-"+(i+1);
-      c.color = depth===1 ? colors[i%colors.length] : color;
-      process(c,depth+1,c.color);
-    });
-
-    if(depth===1) node.color="#333";
+  // handle multi root
+  let root;
+  if(roots.length === 1){
+    root = roots[0];
+  } else {
+    root = {
+      name: "KELUARGA",
+      children: roots
+    };
   }
 
-  roots.forEach(r=>process(r));
-  return roots.length===1?roots[0]:{name:"ROOT",children:roots};
+  // warna cabang
+  const colors = ["#4CAF50","#2196F3","#FF9800","#9C27B0","#E91E63"];
+
+  function process(node, depth=1, color=null){
+
+    node.generation = "Gen-" + depth;
+
+    // safety (hindari error undefined)
+    if(!node.children || node.children.length === 0) return;
+
+    // urut berdasarkan tanggal lahir
+    node.children.sort((a,b)=>{
+      return new Date(a.birth_date || 0) - new Date(b.birth_date || 0);
+    });
+
+    node.children.forEach((c,i)=>{
+      c.orderLabel = "Anak ke-" + (i+1);
+
+      // warna cabang dari anak root
+      c.color = depth === 1 ? colors[i % colors.length] : color;
+
+      process(c, depth+1, c.color);
+    });
+
+    // warna root
+    if(depth === 1){
+      node.color = "#333";
+    }
+  }
+
+  process(root);
+
+  return root;
 }
 
 /* DRAW ORG CHART */
