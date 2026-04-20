@@ -12,7 +12,9 @@
       padding: 20px;
     }
 
-    h2 { color: #333; }
+    h2 {
+      color: #333;
+    }
 
     .container {
       display: flex;
@@ -24,7 +26,7 @@
       padding: 20px;
       border-radius: 12px;
       width: 300px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
     .form-box input, .form-box select {
@@ -50,22 +52,8 @@
       background: white;
       border-radius: 12px;
       padding: 10px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       overflow: hidden;
-    }
-
-    .node rect {
-      transition: 0.2s;
-    }
-
-    .node:hover rect {
-      fill: #e3f2fd;
-      transform: scale(1.03);
-    }
-
-    .link {
-      fill: none;
-      stroke-width: 2;
     }
   </style>
 </head>
@@ -97,11 +85,19 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc }
-from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+// 🔥 FIREBASE
 const firebaseConfig = {
-  apiKey: "AIzaSyAwb3uKq...",
+  apiKey: "AIzaSyAwb3uKq12i0VKYQnLfpmFnOUyosbcJXUI",
   authDomain: "poparan-opung-iren-marbun.firebaseapp.com",
   projectId: "poparan-opung-iren-marbun"
 };
@@ -109,158 +105,212 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ================= CRUD ================= */
-
+// ➕ TAMBAH
 window.addPerson = async function() {
-  const n = name.value.trim();
-  const b = birth.value;
-  const f = father.value;
-
-  if(!n) return alert("Nama wajib diisi!");
-
-  const people = await getPeople();
-  if(!f && people.length > 0){
-    return alert("Pilih ayah! (hanya 1 root)");
-  }
+  const name = document.getElementById("name").value;
+  const birth = document.getElementById("birth").value;
+  const father = document.getElementById("father").value;
 
   await addDoc(collection(db, "people"), {
-    name: n,
-    birth_date: b || null,
-    father_id: f || null
+    name, birth_date: birth, father_id: father || null
   });
 
-  name.value="";
-  birth.value="";
-  father.value="";
-
-  loadAll();
+  loadTree();
+  loadFatherOptions();
 };
 
+// 🗑️ HAPUS
 window.deletePerson = async function(id) {
   if (confirm("Hapus data?")) {
     await deleteDoc(doc(db, "people", id));
-    loadAll();
+    loadTree();
+    loadFatherOptions();
   }
 };
 
-window.editPerson = async function(id, n, b) {
-  const nn = prompt("Nama:", n);
-  const bb = prompt("Tanggal:", b);
-  if (nn) {
+// ✏️ EDIT
+window.editPerson = async function(id, oldName, oldBirth) {
+  const name = prompt("Nama:", oldName);
+  const birth = prompt("Tanggal:", oldBirth);
+
+  if (name) {
     await updateDoc(doc(db, "people", id), {
-      name: nn,
-      birth_date: bb
+      name, birth_date: birth
     });
-    loadAll();
+
+    loadTree();
+    loadFatherOptions();
   }
 };
 
-async function getPeople(){
-  const s = await getDocs(collection(db,"people"));
-  let arr=[];
-  s.forEach(d=>arr.push({id:d.id,...d.data()}));
+// 📥 GET DATA
+async function getPeople() {
+  const snapshot = await getDocs(collection(db, "people"));
+  let people = [];
 
-  // urut global
-  arr.sort((a,b)=>new Date(a.birth_date||0)-new Date(b.birth_date||0));
-
-  return arr;
-}
-
-/* ================= TREE ================= */
-
-function buildTree(data){
-  let map={}, roots=[];
-
-  data.forEach(p=>{
-    map[p.id]={...p, children:[]};
+  snapshot.forEach(doc => {
+    people.push({ id: doc.id, ...doc.data() });
   });
 
-  data.forEach(p=>{
-    if(p.father_id && map[p.father_id]){
+  people.sort((a, b) => new Date(a.birth_date) - new Date(b.birth_date));
+  return people;
+}
+
+// 🌳 BUILD TREE
+function buildTree(people) {
+  let map = {}, root = null;
+
+  people.forEach(p => map[p.id] = { ...p, children: [] });
+
+  people.forEach(p => {
+    if (p.father_id && map[p.father_id]) {
       map[p.father_id].children.push(map[p.id]);
     } else {
-      roots.push(map[p.id]);
+      root = map[p.id];
     }
   });
 
-  let root;
-  if(roots.length===1){
-    root = roots[0];
-  } else {
-    root = { name:"KELUARGA", children:roots };
-  }
-
-  const colors = ["#4CAF50","#2196F3","#FF9800","#9C27B0","#E91E63"];
-
-  function process(node, depth=1, color=null){
-
-    node.generation = "Gen-" + depth;
-
-    if(!node.children || node.children.length===0) return;
-
-    node.children.sort((a,b)=>new Date(a.birth_date||0)-new Date(b.birth_date||0));
-
-    node.children.forEach((c,i)=>{
-      c.orderLabel = "Anak ke-" + (i+1);
-      c.color = depth===1 ? colors[i%colors.length] : color;
-      process(c, depth+1, c.color);
+  function addOrder(node) {
+    node.children.forEach((c, i) => {
+      c.orderLabel = `Anak ke-${i+1}`;
+      addOrder(c);
     });
-
-    if(depth===1) node.color="#333";
   }
 
-  process(root);
+  if (root) addOrder(root);
   return root;
 }
 
-/* ================= DRAW ================= */
+// 🎨 DRAW TREE (PRO UI)
+function drawTree(data) {
+  document.getElementById("tree").innerHTML = "";
 
-function drawTree(data){
-  tree.innerHTML="";
+  const width = 1000;
+  const height = 500;
 
-  const svg = d3.select("#tree").append("svg")
-    .attr("width", 1400)
-    .attr("height", 800)
-    .call(d3.zoom().on("zoom",(e)=>g.attr("transform",e.transform)));
+  const svg = d3.select("#tree")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .call(d3.zoom().on("zoom", (event) => {
+      g.attr("transform", event.transform);
+    }));
 
-  const g = svg.append("g").attr("transform","translate(80,80)");
+  const g = svg.append("g");
 
   const root = d3.hierarchy(data);
-  d3.tree().nodeSize([140,100])(root);
+  const treeLayout = d3.tree().size([height - 100, width - 200]);
+  treeLayout(root);
 
-  // garis siku
+  // 🌿 garis smooth
   g.selectAll("path")
     .data(root.links())
     .enter()
     .append("path")
-    .attr("class","link")
-    .attr("stroke",d=>d.source.data.color||"#999")
-    .attr("d",d=>`
-      M${d.source.x},${d.source.y}
-      V${(d.source.y+d.target.y)/2}
-      H${d.target.x}
-      V${d.target.y}
+    .attr("fill", "none")
+    .attr("stroke", "#90caf9")
+    .attr("stroke-width", 2)
+    .attr("d", d => `
+      M${d.source.y},${d.source.x}
+      C${(d.source.y + d.target.y)/2},${d.source.x}
+       ${(d.source.y + d.target.y)/2},${d.target.x}
+       ${d.target.y},${d.target.x}
     `);
 
   const nodes = g.selectAll("g")
     .data(root.descendants())
     .enter()
     .append("g")
-    .attr("class","node")
-    .attr("transform",d=>`translate(${d.x},${d.y})`)
-    .on("click",(e,d)=>{
-      father.value = d.data.id; // 🔥 klik jadi ayah
+    .attr("transform", d => `translate(${d.y}, ${d.x})`);
+
+  // 🧱 card node
+  const node = nodes.append("g");
+
+  node.append("rect")
+    .attr("x", -50)
+    .attr("y", -25)
+    .attr("width", 100)
+    .attr("height", 50)
+    .attr("rx", 10)
+    .attr("fill", "#fff")
+    .attr("stroke", "#90caf9")
+    .style("filter", "drop-shadow(0px 4px 6px rgba(0,0,0,0.1))");
+
+  node.append("text")
+    .attr("dy", -2)
+    .attr("text-anchor", "middle")
+    .style("font-weight", "bold")
+    .text(d => d.data.name);
+
+  node.append("text")
+    .attr("dy", 12)
+    .attr("text-anchor", "middle")
+    .style("font-size", "10px")
+    .text(d => d.data.orderLabel || "");
+
+  // tombol
+  node.append("text")
+    .attr("dy", 28)
+    .attr("text-anchor", "middle")
+    .style("fill", "blue")
+    .style("cursor", "pointer")
+    .text("✏️")
+    .on("click", (e,d)=>{
+      e.stopPropagation();
+      editPerson(d.data.id,d.data.name,d.data.birth_date);
     });
 
-  // card
-  nodes.append("rect")
-    .attr("x",-60)
-    .attr("y",-30)
-    .attr("width",120)
-    .attr("height",60)
-    .attr("rx",10)
-    .attr("fill","#fff")
-    .attr("stroke",d=>d.data.color||"#333")
-    .style("filter","drop-shadow(0px 4px 6px rgba(0,0,0,0.1))");
+  node.append("text")
+    .attr("dy", 40)
+    .attr("text-anchor", "middle")
+    .style("fill", "red")
+    .style("cursor", "pointer")
+    .text("🗑️")
+    .on("click", (e,d)=>{
+      e.stopPropagation();
+      deletePerson(d.data.id);
+    });
 
-  nodes
+  // ✨ animasi
+  nodes.style("opacity", 0)
+    .transition()
+    .duration(800)
+    .style("opacity", 1);
+
+  // hover
+  node.on("mouseover", function() {
+    d3.select(this).select("rect").attr("fill", "#e3f2fd");
+  }).on("mouseout", function() {
+    d3.select(this).select("rect").attr("fill", "#fff");
+  });
+}
+
+// dropdown
+async function loadFatherOptions() {
+  const people = await getPeople();
+  const select = document.getElementById("father");
+
+  select.innerHTML = '<option value="">-- Pilih Ayah --</option>';
+
+  people.forEach(p => {
+    const o = document.createElement("option");
+    o.value = p.id;
+    o.text = p.name;
+    select.appendChild(o);
+  });
+}
+
+// load
+async function loadTree() {
+  const people = await getPeople();
+  const treeData = buildTree(people);
+  if (treeData) drawTree(treeData);
+}
+
+loadTree();
+loadFatherOptions();
+
+</script>
+
+</body>
+</html>
