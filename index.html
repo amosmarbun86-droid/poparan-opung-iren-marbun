@@ -5,113 +5,81 @@
 <title>Poparan Opung Iren Marbun</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- FONT ADAT -->
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&display=swap" rel="stylesheet">
-
 <script src="https://d3js.org/d3.v7.min.js"></script>
 
 <style>
 body {
-  margin: 0;
-  padding: 10px;
-  font-family: 'Cinzel', serif;
-  overflow-x: hidden;
+  margin:0;
+  padding:10px;
+  font-family:'Cinzel', serif;
 }
 
-/* 🌺 BACKGROUND ULOS (TETAP) */
-body::before {
-  content: "";
-  position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background-image: url("https://www.transparenttextures.com/patterns/black-felt.png");
-  background-color: #8B0000;
-  opacity: 0.25;
-  z-index: -2;
-  animation: kainGerak 12s ease-in-out infinite alternate;
+/* BACKGROUND ULOS */
+body::before{
+  content:"";
+  position:fixed;
+  width:200%;
+  height:200%;
+  background:#8B0000;
+  opacity:0.2;
+  z-index:-2;
+}
+body::after{
+  content:"";
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:#fff8f0;
+  z-index:-1;
 }
 
-body::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 248, 240, 0.92);
-  z-index: -1;
-}
+/* UI */
+.header{text-align:center;color:#8B0000;}
+.form-box{background:#fff;padding:15px;border:2px solid #8B0000;border-radius:10px;}
+.form-box input,.form-box select{width:100%;padding:10px;margin:5px 0;}
+.form-box button{width:100%;padding:12px;background:#8B0000;color:#fff;border:none;}
 
-@keyframes kainGerak {
-  0% { transform: translate(0,0) rotate(0deg); }
-  50% { transform: translate(-30px,20px) rotate(1deg); }
-  100% { transform: translate(20px,-30px) rotate(-1deg); }
-}
-
-/* HEADER */
-.header {
-  text-align: center;
-  margin-bottom: 15px;
-}
-.header h2 {
-  margin: 0;
-  color: #8B0000;
-}
-
-/* FORM */
-.form-box {
-  background: #fff;
-  padding: 15px;
-  border-radius: 12px;
-  border: 2px solid #8B0000;
-}
-.form-box input, .form-box select {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-.form-box button {
-  width: 100%;
-  padding: 12px;
-  background: #8B0000;
-  color: white;
-  border: none;
-}
-
-/* TREE */
-.tree-box {
-  background: #fff;
-  border-radius: 12px;
-  padding: 10px;
-  border: 2px solid #8B0000;
-  overflow: auto;
-  max-height: 80vh;
-}
-#tree svg {
-  touch-action: none;
-}
+.tree-box{border:2px solid #8B0000;border-radius:10px;margin-top:10px;overflow:auto;height:75vh;}
+#tree svg{touch-action:none}
 
 /* NODE */
-.node-box {
-  fill: #fff8f0;
-  stroke: #8B0000;
-  stroke-width: 2;
-  rx: 12;
+.node{opacity:0.3}
+.node-box{fill:#fff8f0;stroke:#8B0000;stroke-width:2;rx:12}
+
+/* LINK */
+.link{stroke:#ccc;stroke-width:2;opacity:0.3}
+
+/* ACTIVE */
+.active-node{opacity:1 !important}
+.active-link{
+  stroke:#ff0000 !important;
+  stroke-width:4;
+  opacity:1 !important;
+  filter: drop-shadow(0 0 6px red);
+}
+
+/* SEARCH */
+.search-box{
+  margin:10px 0;
+}
+.search-box input{
+  width:100%;
+  padding:10px;
+  border:2px solid #8B0000;
 }
 
 /* POPUP */
-#popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  display: none;
-  z-index: 999;
+#popup{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  display:none;
+  z-index:999;
 }
 </style>
 </head>
@@ -125,12 +93,12 @@ body::after {
 <div class="form-box">
   <input id="name" placeholder="Nama">
   <input id="birth" type="date">
-
-  <select id="father">
-    <option value="">-- Pilih Ayah --</option>
-  </select>
-
+  <select id="father"></select>
   <button onclick="addPerson()">Tambah</button>
+</div>
+
+<div class="search-box">
+  <input id="search" placeholder="🔍 Cari nama...">
 </div>
 
 <div class="tree-box">
@@ -141,215 +109,182 @@ body::after {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, getDocs,
-  deleteDoc, doc, updateDoc
-} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc }
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSy...",
-  authDomain: "poparan-opung-iren-marbun.firebaseapp.com",
-  projectId: "poparan-opung-iren-marbun"
-};
-
-const app = initializeApp(firebaseConfig);
+const app = initializeApp({
+  apiKey:"AIzaSy...",
+  authDomain:"poparan-opung-iren-marbun.firebaseapp.com",
+  projectId:"poparan-opung-iren-marbun"
+});
 const db = getFirestore(app);
 
-/* ================= ADD ================= */
-window.addPerson = async function(){
-  const name = nameInput.value;
-  const birth = birthInput.value;
-  const father = fatherInput.value;
+let allNodes = [];
 
-  if(!name) return alert("Nama wajib diisi");
-
+/* CRUD */
+window.addPerson=async()=>{
+  if(!name.value) return alert("Nama wajib");
   await addDoc(collection(db,"people"),{
-    name,
-    birth_date: birth,
-    father_id: father || null
+    name:name.value,
+    birth_date:birth.value,
+    father_id:father.value||null
   });
+  name.value="";birth.value="";loadAll();
+};
 
-  nameInput.value="";
-  birthInput.value="";
-  fatherInput.value="";
-
-  loadAll();
-}
-
-/* ================= DELETE ================= */
-window.deletePerson = async function(id){
-  if(confirm("Hapus data?")){
+window.deletePerson=async(id)=>{
+  if(confirm("Hapus?")){
     await deleteDoc(doc(db,"people",id));
     loadAll();
   }
-}
+};
 
-/* ================= EDIT ================= */
-window.editPerson = async function(id,name,birth){
-  const n = prompt("Nama:",name);
-  const b = prompt("Tanggal:",birth);
-
-  if(n){
-    await updateDoc(doc(db,"people",id),{
-      name:n,
-      birth_date:b
-    });
+window.editPerson=async(id,n,b)=>{
+  const nn=prompt("Nama:",n);
+  const bb=prompt("Tanggal:",b);
+  if(nn){
+    await updateDoc(doc(db,"people",id),{name:nn,birth_date:bb});
     loadAll();
   }
-}
+};
 
-/* ================= GET DATA ================= */
 async function getPeople(){
-  const snap = await getDocs(collection(db,"people"));
+  const s=await getDocs(collection(db,"people"));
   let arr=[];
-  snap.forEach(d=>arr.push({id:d.id,...d.data()}));
-  arr.sort((a,b)=> new Date(a.birth_date)-new Date(b.birth_date));
+  s.forEach(d=>arr.push({id:d.id,...d.data()}));
   return arr;
 }
 
-/* ================= BUILD TREE ================= */
+/* TREE */
 function buildTree(data){
-  let map={};
-  let roots=[];
-
+  let map={},roots=[];
   data.forEach(p=>map[p.id]={...p,children:[]});
-
   data.forEach(p=>{
     if(p.father_id && map[p.father_id]){
       map[p.father_id].children.push(map[p.id]);
-    }else{
-      roots.push(map[p.id]);
-    }
+    } else roots.push(map[p.id]);
   });
-
-  return roots.length===1 ? roots[0] : {name:"ROOT",children:roots};
+  return roots.length===1?roots[0]:{name:"ROOT",children:roots};
 }
 
-/* ================= DRAW TREE (V2 ENGINE) ================= */
+/* DRAW */
 function drawTree(data){
-  document.getElementById("tree").innerHTML="";
+  tree.innerHTML="";
+  const svg=d3.select("#tree").append("svg")
+    .attr("width",window.innerWidth)
+    .attr("height",window.innerHeight)
+    .call(d3.zoom().scaleExtent([0.5,2]).on("zoom",(e)=>g.attr("transform",e.transform)));
 
-  const width = Math.max(window.innerWidth, 900);
-  const height = Math.max(window.innerHeight, 600);
+  const g=svg.append("g").attr("transform","translate(80,50)");
+  const root=d3.hierarchy(data);
+  d3.tree().size([window.innerHeight-100,window.innerWidth-200])(root);
 
-  const svg = d3.select("#tree")
-    .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .call(
-      d3.zoom().scaleExtent([0.5,2])
-      .on("zoom",(event)=>{
-        g.attr("transform", event.transform);
-      })
-    );
-
-  const g = svg.append("g")
-    .attr("transform","translate(80,50)");
-
-  const root = d3.hierarchy(data);
-
-  const treeLayout = d3.tree().size([height - 100, width - 200]);
-  treeLayout(root);
-
-  /* LINK */
-  g.selectAll("path")
+  /* LINKS */
+  const links=g.selectAll("path")
     .data(root.links())
-    .enter()
-    .append("path")
-    .attr("fill","none")
-    .attr("stroke","#8B0000")
-    .attr("stroke-width",2)
-    .attr("d", d => `
-      M${d.source.y},${d.source.x}
-      C${(d.source.y + d.target.y)/2},${d.source.x}
-       ${(d.source.y + d.target.y)/2},${d.target.x}
-       ${d.target.y},${d.target.x}
-    `);
+    .enter().append("path")
+    .attr("class","link")
+    .attr("d",d=>`M${d.source.y},${d.source.x}
+    C${(d.source.y+d.target.y)/2},${d.source.x}
+     ${(d.source.y+d.target.y)/2},${d.target.x}
+     ${d.target.y},${d.target.x}`);
 
-  /* NODE */
-  const nodes = g.selectAll("g.node")
+  /* NODES */
+  const nodes=g.selectAll("g")
     .data(root.descendants())
-    .enter()
-    .append("g")
-    .attr("transform", d=>`translate(${d.y},${d.x})`);
+    .enter().append("g")
+    .attr("class","node")
+    .attr("transform",d=>`translate(${d.y},${d.x})`)
+    .on("click",(e,d)=>{
+      highlightFull(d);
+      showPopup(d.data);
+    });
 
-  const boxWidth = window.innerWidth < 500 ? 150 : 120;
-  const boxHeight = 55;
+  nodes.each(function(d){ d.el=this; });
+  allNodes = nodes.data();
 
   nodes.append("rect")
     .attr("class","node-box")
-    .attr("x",-boxWidth/2)
-    .attr("y",-boxHeight/2)
-    .attr("width",boxWidth)
-    .attr("height",boxHeight)
-    .on("click",(e,d)=>showPopup(d.data));
+    .attr("x",-60).attr("y",-25)
+    .attr("width",120).attr("height",50);
 
   nodes.append("text")
     .attr("text-anchor","middle")
-    .attr("dy","-5")
-    .style("font-weight","bold")
     .text(d=>d.data.name);
 
   nodes.append("text")
-    .attr("text-anchor","middle")
-    .attr("dy","10")
-    .style("font-size","10px")
-    .text(d=>d.data.orderLabel || "");
-
-  nodes.append("text")
-    .attr("dy","22")
+    .attr("dy","25")
     .attr("text-anchor","middle")
     .text("✏️")
-    .on("click",(e,d)=>{
-      e.stopPropagation();
-      editPerson(d.data.id,d.data.name,d.data.birth_date);
-    });
+    .on("click",(e,d)=>{e.stopPropagation();editPerson(d.data.id,d.data.name,d.data.birth_date);});
 
   nodes.append("text")
-    .attr("dy","35")
+    .attr("dy","38")
     .attr("text-anchor","middle")
     .text("🗑️")
-    .on("click",(e,d)=>{
-      e.stopPropagation();
-      deletePerson(d.data.id);
-    });
+    .on("click",(e,d)=>{e.stopPropagation();deletePerson(d.data.id);});
 }
 
-/* ================= POPUP ================= */
-function showPopup(data){
-  const p = document.getElementById("popup");
-  p.style.display="block";
-  p.innerHTML=`
-    <h3>${data.name}</h3>
-    <p>Tanggal Lahir: ${data.birth_date || "-"}</p>
-    <button onclick="document.getElementById('popup').style.display='none'">Tutup</button>
-  `;
+/* HIGHLIGHT FULL */
+function highlightFull(d){
+  d3.selectAll(".node").classed("active-node",false);
+  d3.selectAll(".link").classed("active-link",false);
+
+  function up(n){
+    if(!n) return;
+    d3.select(n.el).classed("active-node",true);
+    if(n.parent){
+      d3.selectAll(".link").filter(l=>l.target===n).classed("active-link",true);
+      up(n.parent);
+    }
+  }
+
+  function down(n){
+    d3.select(n.el).classed("active-node",true);
+    if(n.children){
+      n.children.forEach(c=>{
+        d3.selectAll(".link").filter(l=>l.source===n && l.target===c)
+          .classed("active-link",true);
+        down(c);
+      });
+    }
+  }
+
+  up(d);
+  down(d);
 }
 
-/* ================= DROPDOWN ================= */
-async function loadFather(){
-  const data = await getPeople();
-  fatherInput.innerHTML='<option value="">-- Pilih Ayah --</option>';
+/* SEARCH */
+search.oninput = function(){
+  const val = this.value.toLowerCase();
+  if(!val) return;
 
+  const found = allNodes.find(n => n.data.name.toLowerCase().includes(val));
+  if(found){
+    highlightFull(found);
+  }
+};
+
+/* POPUP */
+function showPopup(d){
+  popup.style.display="block";
+  popup.innerHTML=`<h3>${d.name}</h3><p>${d.birth_date||""}</p>
+  <button onclick="popup.style.display='none'">Tutup</button>`;
+}
+
+/* LOAD */
+async function loadAll(){
+  const data=await getPeople();
+  const t=buildTree(data);
+  if(t) drawTree(t);
+
+  father.innerHTML='<option value="">-- Ayah --</option>';
   data.forEach(p=>{
-    const o=document.createElement("option");
-    o.value=p.id;
-    o.text=p.name;
-    fatherInput.appendChild(o);
+    let o=document.createElement("option");
+    o.value=p.id;o.text=p.name;
+    father.appendChild(o);
   });
 }
-
-/* ================= LOAD ================= */
-async function loadAll(){
-  const data = await getPeople();
-  const tree = buildTree(data);
-  if(tree) drawTree(tree);
-  loadFather();
-}
-
-const nameInput=document.getElementById("name");
-const birthInput=document.getElementById("birth");
-const fatherInput=document.getElementById("father");
 
 loadAll();
 </script>
