@@ -49,13 +49,15 @@
     }
 
     .tree-box {
-      flex: 1;
-      background: white;
-      border-radius: 12px;
-      padding: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      overflow: auto;
-    }
+  flex: 1;
+  height: 80vh; /* 🔥 ini kunci biar tinggi */
+  overflow: hidden;
+}
+
+#tree {
+  width: 100%;
+  height: 100%;
+}
   </style>
 </head>
 
@@ -183,28 +185,36 @@ function buildTree(people) {
 
 // 🎨 DRAW TREE (VERTICAL)
 function drawTree(data) {
-  document.getElementById("tree").innerHTML = "";
+  const container = document.getElementById("tree");
+  container.innerHTML = "";
 
-  const width = 1000;
-  const height = 700;
+  const rect = container.getBoundingClientRect();
+  const width = rect.width;
+  const height = Math.max(600, rect.height);
 
   const svg = d3.select("#tree")
     .append("svg")
     .attr("width", width)
     .attr("height", height)
-    .call(d3.zoom().on("zoom", (event) => {
+    .call(d3.zoom().scaleExtent([0.5, 2]).on("zoom", (event) => {
       g.attr("transform", event.transform);
     }));
 
-  const g = svg.append("g").attr("transform", "translate(50,50)");
+  const g = svg.append("g");
 
   const root = d3.hierarchy(data);
 
-  // 🔥 VERTICAL LAYOUT
+  // 🔥 layout vertical full width
   const treeLayout = d3.tree().size([width - 100, height - 150]);
   treeLayout(root);
 
-  // garis (TOP → DOWN)
+  // 👉 CENTER otomatis
+  root.descendants().forEach(d => {
+    d.x += 50;
+    d.y += 50;
+  });
+
+  // garis
   g.selectAll("path")
     .data(root.links())
     .enter()
@@ -248,32 +258,12 @@ function drawTree(data) {
     .style("font-size", "10px")
     .text(d => d.data.orderLabel || "");
 
-  node.append("text")
-    .attr("dy", 28)
-    .attr("text-anchor", "middle")
-    .style("cursor", "pointer")
-    .text("✏️")
-    .on("click", (e,d)=>{
-      e.stopPropagation();
-      editPerson(d.data.id,d.data.name,d.data.birth_date);
-    });
-
-  node.append("text")
-    .attr("dy", 40)
-    .attr("text-anchor", "middle")
-    .style("cursor", "pointer")
-    .text("🗑️")
-    .on("click", (e,d)=>{
-      e.stopPropagation();
-      deletePerson(d.data.id);
-    });
-
+  // animasi
   nodes.style("opacity", 0)
     .transition()
-    .duration(600)
+    .duration(500)
     .style("opacity", 1);
 }
-
 // dropdown
 async function loadFatherOptions() {
   const people = await getPeople();
