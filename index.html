@@ -1,131 +1,150 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Poparan Opung Iren Marbun</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poparan Opung Iren Marbun</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&display=swap" rel="stylesheet">
-<script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #ffffff);
+      margin: 0;
+      padding: 20px;
+    }
 
-<style>
-body {margin:0;padding:10px;font-family:'Cinzel', serif;}
+    h2 { color: #333; }
 
-body::before{
-  content:"";position:fixed;width:200%;height:200%;
-  background:#8B0000;opacity:0.2;z-index:-2;
-}
-body::after{
-  content:"";position:fixed;width:100%;height:100%;
-  background:#fff8f0;z-index:-1;
-}
+    .container {
+      display: flex;
+      gap: 20px;
+    }
 
-.header{text-align:center;color:#8B0000;}
-.form-box{background:#fff;padding:15px;border:2px solid #8B0000;border-radius:10px;}
-.form-box input,.form-box select{width:100%;padding:10px;margin:5px 0;}
-.form-box button{width:100%;padding:12px;background:#8B0000;color:#fff;border:none;}
+    .form-box {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 300px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
 
-.tree-box{border:2px solid #8B0000;border-radius:10px;margin-top:10px;height:80vh;overflow:hidden;}
+    .form-box input, .form-box select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
 
-.node{opacity:0.3}
-.node-box{stroke-width:2;rx:10}
+    .form-box button {
+      width: 100%;
+      padding: 10px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-.link{stroke:#ccc;stroke-width:2;opacity:0.3}
+    .tree-box {
+      flex: 1;
+      background: white;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
 
-.active-node{opacity:1!important}
-.active-link{
-  stroke:#ff0000!important;
-  stroke-width:4;
-  filter:drop-shadow(0 0 6px red);
-  opacity:1!important;
-}
+    .node rect {
+      transition: 0.2s;
+    }
 
-.search-box{margin:10px 0;}
-.search-box input{width:100%;padding:10px;border:2px solid #8B0000;}
+    .node:hover rect {
+      fill: #e3f2fd;
+      transform: scale(1.03);
+    }
 
-#popup{
-  position:fixed;top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  background:white;padding:20px;border-radius:10px;
-  display:none;z-index:999;
-}
-</style>
+    .link {
+      fill: none;
+      stroke-width: 2;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="header">
-  <h2>🌳 Poparan Opung Iren Marbun</h2>
-</div>
+<h2>🌳 Poparan Opung Iren Marbun</h2>
 
-<div class="form-box">
-  <input id="name" placeholder="Nama">
-  <input id="birth" type="date">
-  <select id="father"></select>
-  <button onclick="addPerson()">Tambah</button>
-</div>
+<div class="container">
 
-<div class="search-box">
-  <input id="search" placeholder="🔍 Cari nama...">
-</div>
+  <div class="form-box">
+    <h3>Tambah Anggota</h3>
 
-<div class="tree-box">
-  <div id="tree"></div>
-</div>
+    <input id="name" placeholder="Nama">
+    <input id="birth" type="date">
 
-<div id="popup"></div>
+    <select id="father">
+      <option value="">-- Pilih Ayah --</option>
+    </select>
+
+    <button onclick="addPerson()">Tambah</button>
+  </div>
+
+  <div class="tree-box">
+    <div id="tree"></div>
+  </div>
+
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-const app = initializeApp({
-  apiKey:"AIzaSy...",
-  authDomain:"poparan-opung-iren-marbun.firebaseapp.com",
-  projectId:"poparan-opung-iren-marbun"
-});
-const db = getFirestore(app);
-
-let allNodes=[];
-
-/* CRUD */
-window.addPerson=async()=>{
-  if(!name.value) return alert("Nama wajib");
-  await addDoc(collection(db,"people"),{
-    name:name.value,
-    birth_date:birth.value,
-    father_id:father.value||null
-  });
-  name.value="";birth.value="";loadAll();
+const firebaseConfig = {
+  apiKey: "AIzaSyAwb3uKq...",
+  authDomain: "poparan-opung-iren-marbun.firebaseapp.com",
+  projectId: "poparan-opung-iren-marbun"
 };
 
-window.deletePerson=async(id)=>{
-  if(confirm("Hapus?")){
-    await deleteDoc(doc(db,"people",id));
-    loadAll();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.addPerson = async function() {
+  await addDoc(collection(db, "people"), {
+    name: name.value,
+    birth_date: birth.value,
+    father_id: father.value || null
+  });
+  loadTree(); loadFatherOptions();
+};
+
+window.deletePerson = async function(id) {
+  if (confirm("Hapus data?")) {
+    await deleteDoc(doc(db, "people", id));
+    loadTree(); loadFatherOptions();
   }
 };
 
-window.editPerson=async(id,n,b)=>{
-  const nn=prompt("Nama:",n);
-  const bb=prompt("Tanggal:",b);
-  if(nn){
-    await updateDoc(doc(db,"people",id),{name:nn,birth_date:bb});
-    loadAll();
+window.editPerson = async function(id, n, b) {
+  const nn = prompt("Nama:", n);
+  const bb = prompt("Tanggal:", b);
+  if (nn) {
+    await updateDoc(doc(db, "people", id), { name: nn, birth_date: bb });
+    loadTree(); loadFatherOptions();
   }
 };
 
 async function getPeople(){
-  const s=await getDocs(collection(db,"people"));
+  const s = await getDocs(collection(db,"people"));
   let arr=[];
   s.forEach(d=>arr.push({id:d.id,...d.data()}));
   return arr;
 }
 
-/* TREE BUILD */
+/* TREE + WARNA + GENERASI */
 function buildTree(data){
-  let map={},roots=[];
+  let map={}, roots=[];
+
   data.forEach(p=>map[p.id]={...p,children:[]});
 
   data.forEach(p=>{
@@ -134,7 +153,7 @@ function buildTree(data){
     } else roots.push(map[p.id]);
   });
 
-  const colors=["#e74c3c","#3498db","#27ae60","#f1c40f","#9b59b6","#e67e22"];
+  const colors=["#4CAF50","#2196F3","#FF9800","#9C27B0","#E91E63"];
 
   function process(node,depth=1,color=null){
     node.generation="Gen-"+depth;
@@ -143,189 +162,114 @@ function buildTree(data){
 
     node.children.forEach((c,i)=>{
       c.orderLabel="Anak ke-"+(i+1);
-      c.color= depth===1 ? colors[i%colors.length] : color;
+      c.color = depth===1 ? colors[i%colors.length] : color;
       process(c,depth+1,c.color);
     });
 
-    if(depth===1) node.color="#8B0000";
+    if(depth===1) node.color="#333";
   }
 
   roots.forEach(r=>process(r));
   return roots.length===1?roots[0]:{name:"ROOT",children:roots};
 }
 
-/* DRAW RADIAL */
+/* DRAW ORG CHART */
 function drawTree(data){
-  tree.innerHTML="";
-
-  const width = window.innerWidth;
-  const height = window.innerHeight;
+  document.getElementById("tree").innerHTML="";
 
   const svg = d3.select("#tree").append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .call(d3.zoom().scaleExtent([0.5,2])
-      .on("zoom",(e)=>g.attr("transform",e.transform)));
+    .attr("width", 1200)
+    .attr("height", 700)
+    .call(d3.zoom().on("zoom",(e)=>g.attr("transform",e.transform)));
 
-  const g = svg.append("g")
-    .attr("transform","translate(40,40)");
+  const g = svg.append("g").attr("transform","translate(50,50)");
 
   const root = d3.hierarchy(data);
 
-  // 🔥 VERTIKAL (TOP → DOWN)
-  const treeLayout = d3.tree()
-    .nodeSize([140, 100]); // jarak antar node
-
+  const treeLayout = d3.tree().nodeSize([140,100]);
   treeLayout(root);
 
-  /* 🔗 GARIS STRUKTUR (TEGAS) */
-  const links = g.selectAll("path")
+  /* GARIS SIKU */
+  g.selectAll("path")
     .data(root.links())
     .enter()
     .append("path")
     .attr("class","link")
-    .attr("fill","none")
-    .attr("stroke", d=>d.source.data.color || "#999")
-    .attr("stroke-width",2)
-    .attr("d", d => `
+    .attr("stroke",d=>d.source.data.color||"#999")
+    .attr("d",d=>`
       M${d.source.x},${d.source.y}
-      V${(d.source.y + d.target.y)/2}
+      V${(d.source.y+d.target.y)/2}
       H${d.target.x}
       V${d.target.y}
     `);
 
-  /* 👤 NODE */
   const nodes = g.selectAll("g")
     .data(root.descendants())
     .enter()
     .append("g")
     .attr("class","node")
-    .attr("transform", d => `translate(${d.x},${d.y})`)
-    .on("click",(e,d)=>{
-      highlightFull(d);
-      showPopup(d.data);
-    });
+    .attr("transform",d=>`translate(${d.x},${d.y})`);
 
-  nodes.each(function(d){ d.el=this; });
-  allNodes = nodes.data();
-
-  /* 📦 BOX */
+  /* CARD */
   nodes.append("rect")
     .attr("x",-60)
     .attr("y",-30)
     .attr("width",120)
     .attr("height",60)
     .attr("rx",10)
-    .attr("fill", d=>d.data.color || "#fff")
-    .attr("stroke", d=>d.data.color || "#8B0000")
-    .attr("stroke-width",2);
+    .attr("fill","#fff")
+    .attr("stroke",d=>d.data.color||"#333")
+    .style("filter","drop-shadow(0px 4px 6px rgba(0,0,0,0.1))");
 
-  /* 🧑 NAMA */
   nodes.append("text")
     .attr("text-anchor","middle")
     .attr("dy","-5")
     .style("font-weight","bold")
     .text(d=>d.data.name);
 
-  /* 👶 URUTAN ANAK */
   nodes.append("text")
     .attr("text-anchor","middle")
     .attr("dy","10")
     .style("font-size","10px")
-    .text(d=>d.data.orderLabel || "");
+    .text(d=>d.data.orderLabel||"");
 
-  /* 🧬 GENERASI */
   nodes.append("text")
     .attr("text-anchor","middle")
     .attr("dy","22")
     .style("font-size","9px")
-    .text(d=>d.data.generation || "");
+    .text(d=>d.data.generation||"");
 
-  /* ✏️ EDIT */
   nodes.append("text")
     .attr("dy","36")
     .attr("text-anchor","middle")
     .text("✏️")
-    .on("click",(e,d)=>{
-      e.stopPropagation();
-      editPerson(d.data.id,d.data.name,d.data.birth_date);
-    });
+    .on("click",(e,d)=>{e.stopPropagation();editPerson(d.data.id,d.data.name,d.data.birth_date);});
 
-  /* 🗑️ DELETE */
   nodes.append("text")
     .attr("dy","48")
     .attr("text-anchor","middle")
     .text("🗑️")
-    .on("click",(e,d)=>{
-      e.stopPropagation();
-      deletePerson(d.data.id);
-    });
-
-  /* ANIMASI MASUK */
-  nodes.style("opacity",0)
-    .transition()
-    .duration(500)
-    .style("opacity",1);
+    .on("click",(e,d)=>{e.stopPropagation();deletePerson(d.data.id);});
 }
 
-/* HIGHLIGHT */
-function highlightFull(d){
-  d3.selectAll(".node").classed("active-node",false);
-  d3.selectAll(".link").classed("active-link",false);
-
-  function up(n){
-    if(!n)return;
-    d3.select(n.el).classed("active-node",true);
-    if(n.parent){
-      d3.selectAll(".link").filter(l=>l.target===n).classed("active-link",true);
-      up(n.parent);
-    }
-  }
-
-  function down(n){
-    d3.select(n.el).classed("active-node",true);
-    if(n.children){
-      n.children.forEach(c=>{
-        d3.selectAll(".link").filter(l=>l.source===n&&l.target===c)
-        .classed("active-link",true);
-        down(c);
-      });
-    }
-  }
-
-  up(d);down(d);
-}
-
-/* SEARCH */
-search.oninput=function(){
-  const val=this.value.toLowerCase();
-  if(!val)return;
-  const f=allNodes.find(n=>n.data.name.toLowerCase().includes(val));
-  if(f) highlightFull(f);
-};
-
-/* POPUP */
-function showPopup(d){
-  popup.style.display="block";
-  popup.innerHTML=`<h3>${d.name}</h3><p>${d.birth_date||""}</p>
-  <button onclick="popup.style.display='none'">Tutup</button>`;
-}
-
-/* LOAD */
-async function loadAll(){
+async function loadTree(){
   const data=await getPeople();
   const t=buildTree(data);
   if(t) drawTree(t);
+}
 
-  father.innerHTML='<option value="">-- Ayah --</option>';
-  data.forEach(p=>{
+async function loadFatherOptions(){
+  const people=await getPeople();
+  father.innerHTML='<option value="">-- Pilih Ayah --</option>';
+  people.forEach(p=>{
     let o=document.createElement("option");
     o.value=p.id;o.text=p.name;
     father.appendChild(o);
   });
 }
 
-loadAll();
+loadTree();
+loadFatherOptions();
 </script>
 
 </body>
