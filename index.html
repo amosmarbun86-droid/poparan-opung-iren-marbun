@@ -50,10 +50,13 @@
 
     .tree-box {
   flex: 1;
-  height: 80vh; /* 🔥 ini kunci biar tinggi */
-  overflow: hidden;
+  -webkit-overflow-scrolling: touch;  
+  height: calc(100vh - 120px);
+  overflow: auto;
 }
-
+#tree svg {
+  min-width: 600px;
+}
 #tree {
   width: 100%;
   height: 100%;
@@ -190,7 +193,8 @@ function drawTree(data) {
 
   const rect = container.getBoundingClientRect();
   const width = rect.width;
-  const height = Math.max(600, rect.height);
+  const nodeCount = root.descendants().length;
+const height = Math.max(rect.height, nodeCount * 80);
 
   const svg = d3.select("#tree")
     .append("svg")
@@ -205,14 +209,14 @@ function drawTree(data) {
   const root = d3.hierarchy(data);
 
   // 🔥 layout vertical full width
-  const treeLayout = d3.tree().size([width - 100, height - 150]);
+  const treeLayout = d3.tree().size([width - 40, height - 40]);
   treeLayout(root);
 
   // 👉 CENTER otomatis
   root.descendants().forEach(d => {
-    d.x += 50;
-    d.y += 50;
-  });
+  d.x += 20;
+  d.y += 20;
+});
 
   // garis
   g.selectAll("path")
