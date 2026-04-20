@@ -196,7 +196,6 @@ function buildTree(people) {
   return root;
 }
 
-// 🎨 DRAW TREE (FIX BUG + RESPONSIVE)
 function drawTree(data) {
   const container = document.getElementById("tree");
   container.innerHTML = "";
@@ -204,7 +203,6 @@ function drawTree(data) {
   const rect = container.getBoundingClientRect();
   const width = rect.width;
 
-  // ✅ FIX: root harus dibuat dulu
   const root = d3.hierarchy(data);
 
   const nodeCount = root.descendants().length;
@@ -223,7 +221,6 @@ function drawTree(data) {
   const treeLayout = d3.tree().size([width - 40, height - 40]);
   treeLayout(root);
 
-  // posisi sedikit ke dalam
   root.descendants().forEach(d => {
     d.x += 20;
     d.y += 20;
@@ -252,6 +249,23 @@ function drawTree(data) {
 
   const node = nodes.append("g");
 
+  // ✅ FINAL CLICK (lebih simpel & aman)
+  node.on("click", (event, d) => {
+    event.stopPropagation();
+
+    const isEdit = confirm(`Edit data ${d.data.name}?`);
+
+    if (isEdit) {
+      editPerson(d.data.id, d.data.name, d.data.birth_date);
+    } else {
+      const isDelete = confirm(`Hapus ${d.data.name}?`);
+      if (isDelete) {
+        deletePerson(d.data.id);
+      }
+    }
+  });
+
+  // kotak
   node.append("rect")
     .attr("x", -60)
     .attr("y", -25)
@@ -261,12 +275,14 @@ function drawTree(data) {
     .attr("fill", "#fff")
     .attr("stroke", "#90caf9");
 
+  // nama
   node.append("text")
     .attr("dy", -2)
     .attr("text-anchor", "middle")
     .style("font-weight", "bold")
     .text(d => d.data.name);
 
+  // urutan anak
   node.append("text")
     .attr("dy", 12)
     .attr("text-anchor", "middle")
