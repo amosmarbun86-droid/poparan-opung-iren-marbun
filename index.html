@@ -1,143 +1,153 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Poparan Opung Iren Marbun</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Poparan Opung Iren Marbun</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- FONT ADAT -->
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&display=swap" rel="stylesheet">
+<!-- FONT ADAT -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&display=swap" rel="stylesheet">
 
-  <script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
 
-  <style>
-    body {
-      margin: 0;
-      padding: 10px;
-      font-family: 'Cinzel', serif;
-      overflow-x: hidden;
-    }
+<style>
+body {
+  margin: 0;
+  padding: 10px;
+  font-family: 'Cinzel', serif;
+  overflow-x: hidden;
+}
 
-    /* 🌺 BACKGROUND ULOS ANIMASI */
-    body::before {
-      content: "";
-      position: fixed;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background-image: url("https://www.transparenttextures.com/patterns/black-felt.png");
-      background-color: #8B0000;
-      opacity: 0.25;
-      z-index: -2;
-      animation: kainGerak 12s ease-in-out infinite alternate;
-    }
+/* 🌺 BACKGROUND ULOS (TETAP) */
+body::before {
+  content: "";
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background-image: url("https://www.transparenttextures.com/patterns/black-felt.png");
+  background-color: #8B0000;
+  opacity: 0.25;
+  z-index: -2;
+  animation: kainGerak 12s ease-in-out infinite alternate;
+}
 
-    body::after {
-      content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 248, 240, 0.92);
-      z-index: -1;
-    }
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 248, 240, 0.92);
+  z-index: -1;
+}
 
-    @keyframes kainGerak {
-      0% { transform: translate(0,0) rotate(0deg); }
-      50% { transform: translate(-30px,20px) rotate(1deg); }
-      100% { transform: translate(20px,-30px) rotate(-1deg); }
-    }
+@keyframes kainGerak {
+  0% { transform: translate(0,0) rotate(0deg); }
+  50% { transform: translate(-30px,20px) rotate(1deg); }
+  100% { transform: translate(20px,-30px) rotate(-1deg); }
+}
 
-    .header {
-      text-align: center;
-      margin-bottom: 15px;
-    }
+/* HEADER */
+.header {
+  text-align: center;
+  margin-bottom: 15px;
+}
+.header h2 {
+  margin: 0;
+  color: #8B0000;
+}
 
-    .header h2 {
-      margin: 0;
-      color: #8B0000;
-    }
+/* FORM */
+.form-box {
+  background: #fff;
+  padding: 15px;
+  border-radius: 12px;
+  border: 2px solid #8B0000;
+}
+.form-box input, .form-box select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.form-box button {
+  width: 100%;
+  padding: 12px;
+  background: #8B0000;
+  color: white;
+  border: none;
+}
 
-    .header small {
-      color: #555;
-    }
+/* TREE */
+.tree-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px;
+  border: 2px solid #8B0000;
+  overflow: auto;
+  max-height: 80vh;
+}
+#tree svg {
+  touch-action: none;
+}
 
-    .container {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
+/* NODE */
+.node-box {
+  fill: #fff8f0;
+  stroke: #8B0000;
+  stroke-width: 2;
+  rx: 12;
+}
 
-    .form-box {
-      background: #fff;
-      padding: 15px;
-      border-radius: 12px;
-      border: 2px solid #8B0000;
-    }
-
-    .form-box input, .form-box select {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-
-    .form-box button {
-      width: 100%;
-      padding: 12px;
-      background: #8B0000;
-      color: white;
-      border: none;
-      border-radius: 8px;
-    }
-
-    .tree-box {
-      background: #fff;
-      border-radius: 12px;
-      padding: 10px;
-      border: 2px solid #8B0000;
-      overflow: auto;
-    }
-  </style>
+/* POPUP */
+#popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  display: none;
+  z-index: 999;
+}
+</style>
 </head>
 
 <body>
 
 <div class="header">
   <h2>🌳 Poparan Opung Iren Marbun</h2>
-  <small>Tarombo Digital Keluarga</small>
 </div>
 
-<div class="container">
+<div class="form-box">
+  <input id="name" placeholder="Nama">
+  <input id="birth" type="date">
 
-  <div class="form-box">
-    <input id="name" placeholder="Nama">
-    <input id="birth" type="date">
+  <select id="father">
+    <option value="">-- Pilih Ayah --</option>
+  </select>
 
-    <select id="father">
-      <option value="">-- Pilih Ayah --</option>
-    </select>
-
-    <button onclick="addPerson()">Tambah</button>
-  </div>
-
-  <div class="tree-box">
-    <div id="tree"></div>
-  </div>
-
+  <button onclick="addPerson()">Tambah</button>
 </div>
+
+<div class="tree-box">
+  <div id="tree"></div>
+</div>
+
+<div id="popup"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { 
+import {
   getFirestore, collection, addDoc, getDocs,
   deleteDoc, doc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAwb3uKq12i0VKYQnLfpmFnOUyosbcJXUI",
+  apiKey: "AIzaSy...",
   authDomain: "poparan-opung-iren-marbun.firebaseapp.com",
   projectId: "poparan-opung-iren-marbun"
 };
@@ -145,110 +155,103 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// tambah
-window.addPerson = async function() {
-  const name = document.getElementById("name").value;
-  const birth = document.getElementById("birth").value;
-  const father = document.getElementById("father").value;
+/* ================= ADD ================= */
+window.addPerson = async function(){
+  const name = nameInput.value;
+  const birth = birthInput.value;
+  const father = fatherInput.value;
 
-  if (!name) return alert("Nama wajib diisi");
+  if(!name) return alert("Nama wajib diisi");
 
-  await addDoc(collection(db, "people"), {
-    name, birth_date: birth, father_id: father || null
+  await addDoc(collection(db,"people"),{
+    name,
+    birth_date: birth,
+    father_id: father || null
   });
 
-  document.getElementById("name").value = "";
-  document.getElementById("birth").value = "";
-  document.getElementById("father").value = "";
+  nameInput.value="";
+  birthInput.value="";
+  fatherInput.value="";
 
-  loadTree();
-  loadFatherOptions();
-};
-
-// hapus
-window.deletePerson = async function(id) {
-  if (confirm("Hapus data?")) {
-    await deleteDoc(doc(db, "people", id));
-    loadTree();
-    loadFatherOptions();
-  }
-};
-
-// edit
-window.editPerson = async function(id, oldName, oldBirth) {
-  const name = prompt("Nama:", oldName);
-  const birth = prompt("Tanggal:", oldBirth);
-
-  if (name) {
-    await updateDoc(doc(db, "people", id), {
-      name, birth_date: birth
-    });
-
-    loadTree();
-    loadFatherOptions();
-  }
-};
-
-// ambil data
-async function getPeople() {
-  const snapshot = await getDocs(collection(db, "people"));
-  let people = [];
-
-  snapshot.forEach(doc => {
-    people.push({ id: doc.id, ...doc.data() });
-  });
-
-  people.sort((a,b)=> new Date(a.birth_date)-new Date(b.birth_date));
-  return people;
+  loadAll();
 }
 
-// build tree
-function buildTree(people) {
-  let map={}, root=null;
+/* ================= DELETE ================= */
+window.deletePerson = async function(id){
+  if(confirm("Hapus data?")){
+    await deleteDoc(doc(db,"people",id));
+    loadAll();
+  }
+}
 
-  people.forEach(p=> map[p.id]={...p,children:[]});
+/* ================= EDIT ================= */
+window.editPerson = async function(id,name,birth){
+  const n = prompt("Nama:",name);
+  const b = prompt("Tanggal:",birth);
 
-  people.forEach(p=>{
+  if(n){
+    await updateDoc(doc(db,"people",id),{
+      name:n,
+      birth_date:b
+    });
+    loadAll();
+  }
+}
+
+/* ================= GET DATA ================= */
+async function getPeople(){
+  const snap = await getDocs(collection(db,"people"));
+  let arr=[];
+  snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+  arr.sort((a,b)=> new Date(a.birth_date)-new Date(b.birth_date));
+  return arr;
+}
+
+/* ================= BUILD TREE ================= */
+function buildTree(data){
+  let map={};
+  let roots=[];
+
+  data.forEach(p=>map[p.id]={...p,children:[]});
+
+  data.forEach(p=>{
     if(p.father_id && map[p.father_id]){
       map[p.father_id].children.push(map[p.id]);
-    } else root=map[p.id];
+    }else{
+      roots.push(map[p.id]);
+    }
   });
 
-  function addOrder(n){
-    n.children.forEach((c,i)=>{
-      c.orderLabel=`Anak ke-${i+1}`;
-      addOrder(c);
-    });
-  }
-
-  if(root) addOrder(root);
-  return root;
+  return roots.length===1 ? roots[0] : {name:"ROOT",children:roots};
 }
 
-// draw tree
+/* ================= DRAW TREE (V2 ENGINE) ================= */
 function drawTree(data){
   document.getElementById("tree").innerHTML="";
 
-  const width = window.innerWidth - 40;
-  const height = window.innerHeight - 150;
+  const width = Math.max(window.innerWidth, 900);
+  const height = Math.max(window.innerHeight, 600);
 
   const svg = d3.select("#tree")
     .append("svg")
     .attr("width", width)
     .attr("height", height)
-    .call(d3.zoom().on("zoom", (event)=>{
-      g.attr("transform", event.transform);
-    }));
+    .call(
+      d3.zoom().scaleExtent([0.5,2])
+      .on("zoom",(event)=>{
+        g.attr("transform", event.transform);
+      })
+    );
 
   const g = svg.append("g")
-    .attr("transform", "translate(20,40)");
+    .attr("transform","translate(80,50)");
 
   const root = d3.hierarchy(data);
-  const treeLayout = d3.tree().size([width - 50, height - 100]);
 
+  const treeLayout = d3.tree().size([height - 100, width - 200]);
   treeLayout(root);
 
-  // garis
+  /* LINK */
   g.selectAll("path")
     .data(root.links())
     .enter()
@@ -257,44 +260,44 @@ function drawTree(data){
     .attr("stroke","#8B0000")
     .attr("stroke-width",2)
     .attr("d", d => `
-      M${d.source.x},${d.source.y}
-      C${d.source.x},${(d.source.y + d.target.y)/2}
-       ${d.target.x},${(d.source.y + d.target.y)/2}
-       ${d.target.x},${d.target.y}
+      M${d.source.y},${d.source.x}
+      C${(d.source.y + d.target.y)/2},${d.source.x}
+       ${(d.source.y + d.target.y)/2},${d.target.x}
+       ${d.target.y},${d.target.x}
     `);
 
-  const nodes = g.selectAll("g")
+  /* NODE */
+  const nodes = g.selectAll("g.node")
     .data(root.descendants())
     .enter()
     .append("g")
-    .attr("transform", d=>`translate(${d.x},${d.y})`);
+    .attr("transform", d=>`translate(${d.y},${d.x})`);
 
-  const node = nodes.append("g");
+  const boxWidth = window.innerWidth < 500 ? 150 : 120;
+  const boxHeight = 55;
 
-  node.append("rect")
-    .attr("x",-55)
-    .attr("y",-25)
-    .attr("width",110)
-    .attr("height",50)
-    .attr("rx",12)
-    .attr("fill","#fff8f0")
-    .attr("stroke","#8B0000")
-    .attr("stroke-width",2);
+  nodes.append("rect")
+    .attr("class","node-box")
+    .attr("x",-boxWidth/2)
+    .attr("y",-boxHeight/2)
+    .attr("width",boxWidth)
+    .attr("height",boxHeight)
+    .on("click",(e,d)=>showPopup(d.data));
 
-  node.append("text")
-    .attr("dy",-2)
+  nodes.append("text")
     .attr("text-anchor","middle")
+    .attr("dy","-5")
     .style("font-weight","bold")
     .text(d=>d.data.name);
 
-  node.append("text")
-    .attr("dy",12)
+  nodes.append("text")
     .attr("text-anchor","middle")
+    .attr("dy","10")
     .style("font-size","10px")
-    .text(d=>d.data.orderLabel||"");
+    .text(d=>d.data.orderLabel || "");
 
-  node.append("text")
-    .attr("dy",28)
+  nodes.append("text")
+    .attr("dy","22")
     .attr("text-anchor","middle")
     .text("✏️")
     .on("click",(e,d)=>{
@@ -302,45 +305,53 @@ function drawTree(data){
       editPerson(d.data.id,d.data.name,d.data.birth_date);
     });
 
-  node.append("text")
-    .attr("dy",40)
+  nodes.append("text")
+    .attr("dy","35")
     .attr("text-anchor","middle")
     .text("🗑️")
     .on("click",(e,d)=>{
       e.stopPropagation();
       deletePerson(d.data.id);
     });
-
-  nodes.style("opacity",0)
-    .transition()
-    .duration(800)
-    .style("opacity",1);
 }
 
-// dropdown
-async function loadFatherOptions(){
-  const people=await getPeople();
-  const select=document.getElementById("father");
+/* ================= POPUP ================= */
+function showPopup(data){
+  const p = document.getElementById("popup");
+  p.style.display="block";
+  p.innerHTML=`
+    <h3>${data.name}</h3>
+    <p>Tanggal Lahir: ${data.birth_date || "-"}</p>
+    <button onclick="document.getElementById('popup').style.display='none'">Tutup</button>
+  `;
+}
 
-  select.innerHTML='<option value="">-- Pilih Ayah --</option>';
+/* ================= DROPDOWN ================= */
+async function loadFather(){
+  const data = await getPeople();
+  fatherInput.innerHTML='<option value="">-- Pilih Ayah --</option>';
 
-  people.forEach(p=>{
+  data.forEach(p=>{
     const o=document.createElement("option");
     o.value=p.id;
     o.text=p.name;
-    select.appendChild(o);
+    fatherInput.appendChild(o);
   });
 }
 
-// load
-async function loadTree(){
-  const people=await getPeople();
-  const treeData=buildTree(people);
-  if(treeData) drawTree(treeData);
+/* ================= LOAD ================= */
+async function loadAll(){
+  const data = await getPeople();
+  const tree = buildTree(data);
+  if(tree) drawTree(tree);
+  loadFather();
 }
 
-loadTree();
-loadFatherOptions();
+const nameInput=document.getElementById("name");
+const birthInput=document.getElementById("birth");
+const fatherInput=document.getElementById("father");
+
+loadAll();
 </script>
 
 </body>
