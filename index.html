@@ -298,12 +298,17 @@ function drawTree(data) {
   const svg = d3.select("#tree")
     .append("svg")
     .attr("width", width)
-    .attr("height", height)
-    .call(d3.zoom().scaleExtent([0.5, 2]).on("zoom", (event) => {
-      g.attr("transform", event.transform);
-    }));
+    .attr("height", height);
 
   const g = svg.append("g");
+
+  svg.call(
+    d3.zoom()
+      .scaleExtent([0.5, 2])
+      .on("zoom", (event) => {
+        g.attr("transform", event.transform);
+      })
+  );
 
   const treeLayout = d3.tree().size([width - 40, height - 40]);
   treeLayout(root);
@@ -313,7 +318,9 @@ function drawTree(data) {
     d.y += 20;
   });
 
-  // garis
+  // ======================
+  // LINKS
+  // ======================
   g.selectAll("path")
     .data(root.links())
     .enter()
@@ -328,54 +335,86 @@ function drawTree(data) {
        ${d.target.x},${d.target.y}
     `);
 
+  // ======================
+  // NODES
+  // ======================
   const nodes = g.selectAll("g")
     .data(root.descendants())
     .enter()
     .append("g")
     .attr("transform", d => `translate(${d.x}, ${d.y})`);
 
-  const node = nodes.append("g");
+  // hover effect
+  nodes.on("mouseenter", function () {
+    d3.select(this).select("rect")
+      .attr("stroke", "#1e88e5")
+      .attr("stroke-width", 3);
+  });
 
-  // ✅ FINAL CLICK (lebih simpel & aman)
-  node.on("click", (event, d) => {
-  event.stopPropagation();
+  nodes.on("mouseleave", function () {
+    d3.select(this).select("rect")
+      .attr("stroke", "#90caf9")
+      .attr("stroke-width", 1);
+  });
 
-  const yakin = confirm(`Hapus ${d.data.name}?`);
+  const node = nodes;
 
-  if (yakin) {
-    deletePerson(d.data.id);
-  }
-});
-
-  // kotak
+  // BOX
   node.append("rect")
-    .attr("x", -60)
-    .attr("y", -25)
-    .attr("width", 120)
-    .attr("height", 50)
-    .attr("rx", 10)
+    .attr("x", -70)
+    .attr("y", -30)
+    .attr("width", 140)
+    .attr("height", 60)
+    .attr("rx", 12)
     .attr("fill", "#fff")
     .attr("stroke", "#90caf9");
 
-  // nama
+  // NAME
   node.append("text")
-    .attr("dy", -2)
+    .attr("dy", -5)
     .attr("text-anchor", "middle")
     .style("font-weight", "bold")
+    .style("font-size", "13px")
     .text(d => d.data.name);
 
-  // urutan anak
+  // EDIT ICON
   node.append("text")
-    .attr("dy", 12)
+    .attr("x", -45)
+    .attr("y", 20)
+    .style("cursor", "pointer")
+    .style("font-size", "16px")
+    .text("✏️")
+    .on("click", (event, d) => {
+      event.stopPropagation();
+      editPerson(d.data.id, d.data.name, d.data.birth_date);
+    });
+
+  // DELETE ICON
+  node.append("text")
+    .attr("x", 45)
+    .attr("y", 20)
+    .style("cursor", "pointer")
+    .style("font-size", "16px")
+    .text("🗑")
+    .on("click", (event, d) => {
+      event.stopPropagation();
+      deletePerson(d.data.id);
+    });
+
+  // LABEL
+  node.append("text")
+    .attr("dy", 25)
     .attr("text-anchor", "middle")
     .style("font-size", "10px")
+    .style("fill", "#666")
     .text(d => d.data.orderLabel || "");
 
-  // animasi
+  // animation
   nodes.style("opacity", 0)
     .transition()
-    .duration(500)
+    .duration(400)
     .style("opacity", 1);
+};
 }
 
 // dropdown
