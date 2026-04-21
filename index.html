@@ -340,8 +340,11 @@ function drawTree(data) {
   node.on("click", (event, d) => {
   event.stopPropagation();
 
-  // langsung buka modal edit
-  editPerson(d.data.id, d.data.name, d.data.birth_date);
+  const yakin = confirm(`Hapus ${d.data.name}?`);
+
+  if (yakin) {
+    deletePerson(d.data.id);
+  }
 });
 
   // kotak
