@@ -90,7 +90,10 @@ h2 {
   border-radius: 10px;
   width: 300px;
 }
-  
+  .delete {
+  background: #e53935;
+  color: white;
+  }
   </style>
 </head>
 
@@ -132,8 +135,9 @@ h2 {
     <input id="editBirth" type="date">
 
     <div class="modal-actions">
-      <button onclick="saveEdit()">Simpan</button>
-      <button onclick="closeModal()" class="cancel">Batal</button>
+  <button onclick="saveEdit()">Simpan</button>
+  <button onclick="deleteFromModal()" class="delete">Hapus</button>
+  <button onclick="closeModal()" class="cancel">Batal</button>
     </div>
   </div>
 </div>
@@ -410,7 +414,28 @@ function closeModal() {
   document.getElementById("modal").style.display = "none";
 }
 
-// ✅ TAMBAHKAN INI (klik luar modal)
+// ✅ DELETE HARUS DI LUAR
+async function deleteFromModal() {
+  if (!currentEditId) return;
+
+  if (!confirm("Yakin mau hapus data ini?")) return;
+
+  try {
+    await deleteDoc(doc(db, "people", currentEditId));
+
+    alert("Data berhasil dihapus 🗑️");
+
+    closeModal();
+    loadTree();
+    loadFatherOptions();
+
+  } catch (err) {
+    console.error(err);
+    alert("Gagal menghapus ❌");
+  }
+}
+
+// klik luar modal
 window.onclick = function(event) {
   const modal = document.getElementById("modal");
 
