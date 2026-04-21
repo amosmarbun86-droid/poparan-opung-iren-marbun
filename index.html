@@ -71,6 +71,26 @@ h2 {
   width: 100%;
   height: 100%;
 }
+ .modal {
+  display: none; /* awalnya hidden */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+}
+  
   </style>
 </head>
 
@@ -80,25 +100,44 @@ h2 {
 
 <div class="container">
 
-  <div class="form-box">
-    <h3>Tambah Anggota</h3>
+<div class="form-box">
+  <h3>Tambah Anggota</h3>
 
-    <input id="name" placeholder="Nama">
-    <input id="birth" type="date">
+  <input id="name" placeholder="Nama">
+  <input id="birth" type="date">
 
-    <select id="father">
-      <option value="">-- Pilih Ayah --</option>
-    </select>
+  <select id="father">
+    <option value="">-- Pilih Ayah --</option>
+  </select>
 
-    <button onclick="addPerson()">Tambah</button>
+  <button onclick="addPerson()">Tambah</button>
+
+  <!-- ✅ Tambahkan di sini -->
+  <button onclick="openModalTest()">Test Modal</button>
+
   </div>
 
   <div class="tree-box">
     <div id="tree"></div>
   </div>
 
-</div>
+</div> <!-- ✅ WAJIB ditutup -->
 
+<!-- ✅ Modal taruh di luar container -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h3>Edit Data</h3>
+
+    <input id="editName" placeholder="Nama">
+    <input id="editBirth" type="date">
+
+    <div class="modal-actions">
+      <button onclick="saveEdit()">Simpan</button>
+      <button onclick="closeModal()" class="cancel">Batal</button>
+    </div>
+  </div>
+</div>
+  
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { 
@@ -120,19 +159,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ➕ TAMBAH
-window.addPerson = async function() {
-  const name = nameEl.value;
-  const birth = birthEl.value;
-  const father = fatherEl.value;
-
-  await addDoc(collection(db, "people"), {
-    name, birth_date: birth, father_id: father || null
-  });
-
-  loadTree();
-  loadFatherOptions();
-};
 
 // 🗑️ HAPUS
 window.deletePerson = async function(id) {
@@ -142,19 +168,76 @@ window.deletePerson = async function(id) {
     loadFatherOptions();
   }
 };
-
 // ✏️ EDIT
-window.editPerson = async function(id, oldName, oldBirth) {
-  const name = prompt("Nama:", oldName);
-  const birth = prompt("Tanggal:", oldBirth);
+let currentEditId = null;
 
-  if (name) {
-    await updateDoc(doc(db, "people", id), {
-      name, birth_date: birth
+window.editPerson = function(id, oldName, oldBirth) {
+  currentEditId = id;
+
+  document.getElementById("editName").value = oldName || "";
+  document.getElementById("editBirth").value = oldBirth || "";
+
+  document.getElementById("modal").style.display = "flex";
+};
+window.saveEdit = async function() {
+  const name = document.getElementById("editName").value.trim();
+  const birth = document.getElementById("editBirth").value;
+
+  if (!name) {
+    alert("Nama wajib diisi");
+    return;
+  }
+
+  try {
+    await updateDoc(doc(db, "people", currentEditId), {
+      name,
+      birth_date: birth
     });
+
+    alert("Data berhasil diupdate ✅");
+
+    closeModal();
+    loadTree();
+    loadFatherOptions();
+
+  } catch (err) {
+    console.error(err);
+    alert("Gagal update data ❌");
+  }
+};
+  window.addPerson = async function() {
+  const name = nameEl.value.trim();
+  const birth = birthEl.value;
+  const father = fatherEl.value;
+
+  if (!name) {
+    alert("Nama wajib diisi");
+    return;
+  }
+
+  if (!birth) {
+    alert("Tanggal lahir wajib diisi");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "people"), {
+      name,
+      birth_date: birth,
+      father_id: father || null
+    });
+
+    nameEl.value = "";
+    birthEl.value = "";
+    fatherEl.value = "";
+
+    alert("Berhasil ditambahkan ✅");
 
     loadTree();
     loadFatherOptions();
+  } catch (err) {
+    console.error(err);
+    alert("Gagal menyimpan data ❌");
   }
 };
 
@@ -251,19 +334,11 @@ function drawTree(data) {
 
   // ✅ FINAL CLICK (lebih simpel & aman)
   node.on("click", (event, d) => {
-    event.stopPropagation();
+  event.stopPropagation();
 
-    const isEdit = confirm(`Edit data ${d.data.name}?`);
-
-    if (isEdit) {
-      editPerson(d.data.id, d.data.name, d.data.birth_date);
-    } else {
-      const isDelete = confirm(`Hapus ${d.data.name}?`);
-      if (isDelete) {
-        deletePerson(d.data.id);
-      }
-    }
-  });
+  // langsung buka modal edit
+  editPerson(d.data.id, d.data.name, d.data.birth_date);
+});
 
   // kotak
   node.append("rect")
@@ -324,6 +399,25 @@ const fatherEl = document.getElementById("father");
 
 loadTree();
 loadFatherOptions();
+
+// buka modal (test)
+function openModalTest() {
+  document.getElementById("modal").style.display = "flex";
+}
+
+// tutup modal
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+}
+
+// ✅ TAMBAHKAN INI (klik luar modal)
+window.onclick = function(event) {
+  const modal = document.getElementById("modal");
+
+  if (event.target === modal) {
+    closeModal();
+  }
+};
 
 </script>
 
