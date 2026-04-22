@@ -70,15 +70,14 @@ h2 {
 /* ===== TREE CONTAINER ===== */
 #tree {
   width: 100%;
-  min-height: 100vh;
   overflow: visible;
+  position: relative;
 
-  /* ✅ background lebih jelas */
   background-image: 
-    linear-gradient(rgba(255,255,255,0.4), rgba(255,255,255,0.4)),
+    linear-gradient(rgba(255,255,255,0.35), rgba(255,255,255,0.35)),
     url('https://res.cloudinary.com/dkisbfx29/image/upload/v1776830443/zt6jgootkagt2rjovfji.png');
 
-  background-size: 100% auto; /* ✅ mengikuti tinggi tree */
+  background-size: 100% auto; /* ✅ tidak stretch */
   background-position: top center;
   background-repeat: no-repeat;
 }
@@ -328,24 +327,29 @@ function drawTree(data) {
 
   const root = d3.hierarchy(data);
 
-  // ✅ jalankan layout dulu
-  const treeLayout = d3.tree().size([width - 40, 1000]);
+  // ✅ pakai tinggi besar supaya layout fleksibel
+  const treeLayout = d3.tree().size([width - 40, 2000]);
   treeLayout(root);
 
-  // ✅ baru hitung tinggi berdasarkan posisi node
+  // ✅ hitung tinggi REAL
   const nodes = root.descendants();
   const maxY = d3.max(nodes, d => d.y);
-const height = maxY + 200;
+  const height = maxY + 200;
 
-  // ✅ buat svg setelah tahu height
+  // ✅ buat SVG
   const svg = d3.select("#tree")
     .append("svg")
     .attr("width", width)
     .attr("height", height);
 
+  // ✅ SYNC background dengan tree
+  container.style.height = height + "px";
+
   const g = svg.append("g");
 
-  // zoom
+  // ======================
+  // ZOOM
+  // ======================
   svg.call(
     d3.zoom()
       .scaleExtent([0.5, 2])
@@ -363,10 +367,11 @@ const height = maxY + 200;
   // ======================
   // LINKS
   // ======================
-  g.selectAll("path")
+  g.selectAll("path.link")
     .data(root.links())
     .enter()
     .append("path")
+    .attr("class", "link")
     .attr("fill", "none")
     .attr("stroke", "#90caf9")
     .attr("stroke-width", 2)
@@ -380,12 +385,14 @@ const height = maxY + 200;
   // ======================
   // NODES
   // ======================
-  const nodeGroup = g.selectAll("g")
-  .data(root.descendants())
-  .enter()
-  .append("g")
-  .attr("transform", d => `translate(${d.x}, ${d.y})`);
-  // hover effect
+  const nodeGroup = g.selectAll("g.node")
+    .data(root.descendants())
+    .enter()
+    .append("g")
+    .attr("class", "node")
+    .attr("transform", d => `translate(${d.x}, ${d.y})`);
+
+  // hover
   nodeGroup.on("mouseenter", function () {
     d3.select(this).select("rect")
       .attr("stroke", "#1e88e5")
@@ -398,10 +405,8 @@ const height = maxY + 200;
       .attr("stroke-width", 1);
   });
 
-  const node = nodeGroup;
-
   // BOX
-  node.append("rect")
+  nodeGroup.append("rect")
     .attr("x", -70)
     .attr("y", -30)
     .attr("width", 140)
@@ -411,15 +416,15 @@ const height = maxY + 200;
     .attr("stroke", "#90caf9");
 
   // NAME
-  node.append("text")
+  nodeGroup.append("text")
     .attr("dy", -5)
     .attr("text-anchor", "middle")
     .style("font-weight", "bold")
     .style("font-size", "13px")
     .text(d => d.data.name);
 
-  // EDIT ICON
-  node.append("text")
+  // EDIT
+  nodeGroup.append("text")
     .attr("x", -45)
     .attr("y", 20)
     .style("cursor", "pointer")
@@ -430,8 +435,8 @@ const height = maxY + 200;
       editPerson(d.data.id, d.data.name, d.data.birth_date);
     });
 
-  // DELETE ICON
-  node.append("text")
+  // DELETE
+  nodeGroup.append("text")
     .attr("x", 45)
     .attr("y", 20)
     .style("cursor", "pointer")
@@ -443,19 +448,20 @@ const height = maxY + 200;
     });
 
   // LABEL
-  node.append("text")
+  nodeGroup.append("text")
     .attr("dy", 25)
     .attr("text-anchor", "middle")
     .style("font-size", "10px")
     .style("fill", "#666")
     .text(d => d.data.orderLabel || "");
 
-  // animation
+  // ======================
+  // ANIMATION
+  // ======================
   nodeGroup.style("opacity", 0)
     .transition()
     .duration(400)
     .style("opacity", 1);
-
 }
 
 // dropdown
