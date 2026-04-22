@@ -347,19 +347,19 @@ function drawTree(data) {
   container.innerHTML = "";
 
   const width = container.clientWidth;
-  const height = container.clientHeight; // 🔥 pakai tinggi layar
+  const height = container.clientHeight;
 
   const root = d3.hierarchy(data);
 
   const treeLayout = d3.tree()
-    .nodeSize([140, 100]);
+    .nodeSize([150, 110]); // 🔥 sedikit diperlebar biar enak klik
 
   treeLayout(root);
 
   const nodes = root.descendants();
 
   // =========================
-  // AUTO CENTER (VERTIKAL & HORIZONTAL)
+  // AUTO CENTER
   // =========================
   const minX = d3.min(nodes, d => d.x);
   const maxX = d3.max(nodes, d => d.x);
@@ -396,7 +396,7 @@ function drawTree(data) {
   );
 
   // ======================
-  // LINKS (tetap sama)
+  // LINKS
   // ======================
   g.selectAll("path.link")
     .data(root.links())
@@ -413,75 +413,79 @@ function drawTree(data) {
     `);
 
   // ======================
-// NODES (FINAL CLEAN)
-// ======================
-const nodeGroup = g.selectAll("g.node")
-  .data(nodes)
-  .enter()
-  .append("g")
-  .attr("class", "node")
-  .attr("transform", d => `translate(${d.x}, ${d.y})`);
+  // NODES
+  // ======================
+  const nodeGroup = g.selectAll("g.node")
+    .data(nodes)
+    .enter()
+    .append("g")
+    .attr("class", "node")
+    .attr("transform", d => `translate(${d.x}, ${d.y})`);
 
-// BOX
-nodeGroup.append("rect")
-  .attr("x", -60)
-  .attr("y", -25)
-  .attr("width", 120)
-  .attr("height", 55) // 🔥 sedikit lebih tinggi
-  .attr("rx", 10)
-  .attr("fill", "#fff")
-  .attr("stroke", "#90caf9");
+  // BOX
+  nodeGroup.append("rect")
+    .attr("x", -60)
+    .attr("y", -25)
+    .attr("width", 120)
+    .attr("height", 55)
+    .attr("rx", 10)
+    .attr("fill", "#fff")
+    .attr("stroke", "#90caf9");
 
-// NAMA
-nodeGroup.append("text")
-  .attr("text-anchor", "middle")
-  .attr("dy", -5)
-  .style("font-weight", "bold")
-  .style("font-size", "13px")
-  .text(d => d.data.name);
+  // NAMA
+  nodeGroup.append("text")
+    .attr("text-anchor", "middle")
+    .attr("dy", -5)
+    .style("font-weight", "bold")
+    .style("font-size", "13px")
+    .text(d => d.data.name);
 
-// LABEL (HANYA SEKALI!)
-nodeGroup.append("text")
-  .attr("dy", 16)
-  .attr("text-anchor", "middle")
-  .style("font-size", "10px")
-  .style("fill", "#666")
-  .text(d => d.data.orderLabel || "");
+  // LABEL
+  nodeGroup.append("text")
+    .attr("dy", 16)
+    .attr("text-anchor", "middle")
+    .style("font-size", "10px")
+    .style("fill", "#666")
+    .text(d => d.data.orderLabel || "");
 
-// EDIT
-nodeGroup.append("text")
-  .attr("class", "edit-btn") // ✅ WAJIB
-  .attr("x", -45)
-  .attr("y", 20)
-  .text("✏️")
-  .style("cursor", "pointer")
-  .style("font-size", "14px")
-  .on("click", (event, d) => {
-    event.stopPropagation();
-    editPerson(d.data.id, d.data.name, d.data.birth_date);
-  });
+  // ======================
+  // EDIT
+  // ======================
+  nodeGroup.append("text")
+    .attr("class", "edit-btn")
+    .attr("x", -45)
+    .attr("y", 20)
+    .text("✏️")
+    .style("font-size", "16px")
+    .on("click", (event, d) => {
+      event.stopPropagation();
+      event.preventDefault();
+      window.editPerson(d.data.id, d.data.name, d.data.birth_date);
+    });
 
-// DELETE
-nodeGroup.append("text")
-  .attr("class", "delete-btn") // ✅ WAJIB
-  .attr("x", 45)
-  .attr("y", 20)
-  .text("🗑")
-  .style("cursor", "pointer")
-  .style("font-size", "14px")
-  .on("click", (event, d) => {
-    event.stopPropagation();
-    deletePerson(d.data.id);
-  });
+  // ======================
+  // DELETE
+  // ======================
+  nodeGroup.append("text")
+    .attr("class", "delete-btn")
+    .attr("x", 45)
+    .attr("y", 20)
+    .text("🗑")
+    .style("font-size", "16px")
+    .on("click", (event, d) => {
+      event.stopPropagation();
+      event.preventDefault();
+      window.deletePerson(d.data.id);
+    });
 
-// ANIMATION
-nodeGroup.style("opacity", 0)
-  .transition()
-  .duration(400)
-  .style("opacity", 1);
-
-} // ✅ INI YANG KAMU LUPA
-
+  // ======================
+  // ANIMATION
+  // ======================
+  nodeGroup.style("opacity", 0)
+    .transition()
+    .duration(400)
+    .style("opacity", 1);
+}
 // dropdown
 async function loadFatherOptions() {
   const people = await getPeople();
