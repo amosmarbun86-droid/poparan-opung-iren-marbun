@@ -9,70 +9,77 @@
   font-family: Arial, sans-serif;
   background: linear-gradient(135deg, #e3f2fd, #ffffff);
   margin: 0;
-  padding: 20px;
+  padding: 16px;
+  overflow-y: auto; /* ✅ scroll halaman, bukan box */
 }
 
 h2 {
   color: #333;
-  text-align: center; /* 🔥 biar lebih rapi */
+  text-align: center;
+  margin-bottom: 15px;
 }
 
-/* layout jadi atas-bawah */
+/* layout */
 .container {
   display: block;
 }
 
-/* form */
+/* FORM */
 .form-box {
   background: white;
-  padding: 20px;
+  padding: 18px;
   border-radius: 12px;
   width: 100%;
   max-width: 500px;
-  margin: 0 auto 15px; /* 🔥 center + jarak bawah */
+  margin: 0 auto 15px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-.form-box input, 
+.form-box input,
 .form-box select {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   margin-bottom: 10px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid #ccc;
+  font-size: 14px;
 }
 
 .form-box button {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   background: #4CAF50;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
+  margin-top: 5px;
+  font-size: 14px;
 }
 
-/* tree */
+/* TREE AREA */
 .tree-box {
-  width: 100%; /* 🔥 pastikan full */
-  height: calc(100vh - 220px); /* 🔥 disesuaikan karena form di atas */
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  background: white; /* 🔥 biar beda dari background */
+  width: 100%;
+  min-height: 500px; /* ✅ biar tidak gepeng */
+  background: white;
   border-radius: 12px;
   padding: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-#tree svg {
-  min-width: 600px;
-}
-
+/* container tree */
 #tree {
   width: 100%;
-  height: 100%;
 }
- .modal {
-  display: none; /* awalnya hidden */
+
+/* SVG */
+#tree svg {
+  min-width: 600px; /* ✅ biar tidak terlalu sempit */
+}
+
+/* MODAL */
+.modal {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -82,18 +89,34 @@ h2 {
 
   justify-content: center;
   align-items: center;
+  z-index: 999;
 }
 
 .modal-content {
   background: white;
   padding: 20px;
-  border-radius: 10px;
-  width: 300px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 320px;
 }
-  .delete {
+
+.modal-actions button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.delete {
   background: #e53935;
   color: white;
-  }
+}
+
+.cancel {
+  background: #ccc;
+}
   </style>
 </head>
 
