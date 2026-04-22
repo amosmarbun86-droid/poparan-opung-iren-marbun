@@ -5,12 +5,13 @@
   <script src="https://d3js.org/d3.v7.min.js"></script>
 
   <style>
-    body {
+    /* ===== GLOBAL ===== */
+body {
   font-family: Arial, sans-serif;
   background: linear-gradient(135deg, #e3f2fd, #ffffff);
   margin: 0;
   padding: 16px;
-  overflow-y: auto; /* ✅ scroll halaman, bukan box */
+  overflow-y: auto;
 }
 
 h2 {
@@ -19,12 +20,12 @@ h2 {
   margin-bottom: 15px;
 }
 
-/* layout */
+/* ===== LAYOUT ===== */
 .container {
   display: block;
 }
 
-/* FORM */
+/* ===== FORM ===== */
 .form-box {
   background: white;
   padding: 18px;
@@ -57,34 +58,43 @@ h2 {
   font-size: 14px;
 }
 
-/* TREE AREA */
+/* ===== TREE AREA ===== */
 .tree-box {
   width: 100%;
-  background: white;
+  background: transparent; /* ✅ biar background kelihatan */
   border-radius: 12px;
   padding: 10px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-/* container tree */
+/* ===== TREE CONTAINER ===== */
 #tree {
   width: 100%;
-  overflow: auto; /* ✅ bisa scroll semua arah */
+  min-height: 100vh; /* ✅ biar tidak kepotong bawah */
+  overflow: visible; /* ✅ scroll ikut halaman */
+
+  /* ✅ BACKGROUND BATU (PUNYAMU) */
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)),
+    url('https://res.cloudinary.com/dkisbfx29/image/upload/v1776830443/zt6jgootkagt2rjovfji.png');
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-/* SVG */
+/* ===== SVG TREE ===== */
 #tree svg {
   display: block;
-  width: 100%;
-  height: auto;
-  min-width: 600px;
+  min-width: 600px; /* ✅ biar tidak gepeng di HP */
 }
 
 /* tambahan aman */
 svg {
   display: block;
 }
-/* MODAL */
+
+/* ===== MODAL ===== */
 .modal {
   display: none;
   position: fixed;
@@ -119,10 +129,6 @@ svg {
 .delete {
   background: #e53935;
   color: white;
-}
-
-.cancel {
-  background: #ccc;
 }
   </style>
 </head>
