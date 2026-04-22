@@ -374,26 +374,25 @@ const height = maxY + 200;
   // ======================
   // NODES
   // ======================
-  const nodes = g.selectAll("g")
-    .data(root.descendants())
-    .enter()
-    .append("g")
-    .attr("transform", d => `translate(${d.x}, ${d.y})`);
-
+  const nodeGroup = g.selectAll("g")
+  .data(root.descendants())
+  .enter()
+  .append("g")
+  .attr("transform", d => `translate(${d.x}, ${d.y})`);
   // hover effect
-  nodes.on("mouseenter", function () {
+  nodeGroup.on("mouseenter", function () {
     d3.select(this).select("rect")
       .attr("stroke", "#1e88e5")
       .attr("stroke-width", 3);
   });
 
-  nodes.on("mouseleave", function () {
+  nodeGroup.on("mouseleave", function () {
     d3.select(this).select("rect")
       .attr("stroke", "#90caf9")
       .attr("stroke-width", 1);
   });
 
-  const node = nodes;
+  const node = nodeGroup;
 
   // BOX
   node.append("rect")
@@ -446,7 +445,7 @@ const height = maxY + 200;
     .text(d => d.data.orderLabel || "");
 
   // animation
-  nodes.style("opacity", 0)
+  nodeGroup.style("opacity", 0)
     .transition()
     .duration(400)
     .style("opacity", 1);
