@@ -70,16 +70,16 @@ h2 {
 /* ===== TREE CONTAINER ===== */
 #tree {
   width: 100%;
-  min-height: 100vh; /* ✅ biar tidak kepotong bawah */
-  overflow: visible; /* ✅ scroll ikut halaman */
+  min-height: 100vh;
+  overflow: visible;
 
-  /* ✅ BACKGROUND BATU (PUNYAMU) */
+  /* ✅ background lebih jelas */
   background-image: 
-    linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)),
+    linear-gradient(rgba(255,255,255,0.4), rgba(255,255,255,0.4)),
     url('https://res.cloudinary.com/dkisbfx29/image/upload/v1776830443/zt6jgootkagt2rjovfji.png');
 
-  background-size: cover;
-  background-position: center;
+  background-size: 100% auto; /* ✅ mengikuti tinggi tree */
+  background-position: top center;
   background-repeat: no-repeat;
 }
 
