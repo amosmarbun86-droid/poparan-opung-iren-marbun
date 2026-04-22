@@ -315,9 +315,16 @@ function drawTree(data) {
 
   const root = d3.hierarchy(data);
 
-  const nodeCount = root.descendants().length;
-  const height = Math.max(600, nodeCount * 100);
+  // ✅ jalankan layout dulu
+  const treeLayout = d3.tree().size([width - 40, 1000]);
+  treeLayout(root);
 
+  // ✅ baru hitung tinggi berdasarkan posisi node
+  const nodes = root.descendants();
+  const maxY = d3.max(nodes, d => d.y);
+  const height = maxY + 120;
+
+  // ✅ buat svg setelah tahu height
   const svg = d3.select("#tree")
     .append("svg")
     .attr("width", width)
@@ -325,6 +332,7 @@ function drawTree(data) {
 
   const g = svg.append("g");
 
+  // zoom
   svg.call(
     d3.zoom()
       .scaleExtent([0.5, 2])
@@ -333,12 +341,10 @@ function drawTree(data) {
       })
   );
 
-  const treeLayout = d3.tree().size([width - 40, height - 40]);
-  treeLayout(root);
-
+  // offset
   root.descendants().forEach(d => {
     d.x += 20;
-    d.y += 20;
+    d.y += 40;
   });
 
   // ======================
