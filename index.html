@@ -93,7 +93,25 @@ h2 {
 
 /* ===== NODE TEXT ===== */
 .node text {
-  pointer-events: none;
+  pointer-events: none; /* teks biasa tidak bisa diklik */
+}
+
+/* ===== TOMBOL EDIT & DELETE ===== */
+.edit-btn,
+.delete-btn {
+  pointer-events: all;   /* 🔥 aktifkan klik */
+  cursor: pointer;
+  font-size: 16px;
+  user-select: none;
+}
+
+/* ===== OPTIONAL HOVER EFFECT ===== */
+.edit-btn:hover {
+  transform: scale(1.2);
+}
+
+.delete-btn:hover {
+  transform: scale(1.2);
 }
 
 /* ===== LINK SMOOTH ===== */
@@ -432,6 +450,7 @@ nodeGroup.append("text")
 
 // EDIT
 nodeGroup.append("text")
+  .attr("class", "edit-btn") // ✅ WAJIB
   .attr("x", -45)
   .attr("y", 20)
   .text("✏️")
@@ -444,6 +463,7 @@ nodeGroup.append("text")
 
 // DELETE
 nodeGroup.append("text")
+  .attr("class", "delete-btn") // ✅ WAJIB
   .attr("x", 45)
   .attr("y", 20)
   .text("🗑")
