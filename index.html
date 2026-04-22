@@ -93,19 +93,24 @@ h2 {
 
 /* ===== NODE TEXT ===== */
 .node text {
-  pointer-events: none; /* teks biasa tidak bisa diklik */
+  pointer-events: none;
 }
 
-/* ===== TOMBOL EDIT & DELETE ===== */
+/* ✅ FIX KLIK EDIT & DELETE */
 .edit-btn,
 .delete-btn {
-  pointer-events: all;   /* 🔥 aktifkan klik */
+  pointer-events: all !important; /* 🔥 INI KUNCINYA */
   cursor: pointer;
   font-size: 16px;
   user-select: none;
 }
 
-/* ===== OPTIONAL HOVER EFFECT ===== */
+/* optional biar pasti */
+.node {
+  pointer-events: all;
+}
+
+/* ===== HOVER ===== */
 .edit-btn:hover {
   transform: scale(1.2);
 }
