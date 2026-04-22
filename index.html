@@ -782,7 +782,22 @@ window.onclick = function(event) {
     closeModal();
   }
 };
+// ======================
+// 📸 DOWNLOAD GAMBAR TREE
+// ======================
+window.downloadTreeImage = function () {
+  const area = document.querySelector(".tree-box"); // 🔥 ambil area tree
 
+  html2canvas(area, {
+    scale: 2,        // biar HD
+    useCORS: true    // biar background bisa ikut
+  }).then(canvas => {
+    const link = document.createElement("a");
+    link.download = "family-tree.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+};
 </script>
 
 <!-- 🔥 TARUH DI SINI -->
