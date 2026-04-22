@@ -60,7 +60,6 @@ h2 {
 /* TREE AREA */
 .tree-box {
   width: 100%;
-  min-height: 500px; /* ✅ biar tidak gepeng */
   background: white;
   border-radius: 12px;
   padding: 10px;
@@ -70,13 +69,21 @@ h2 {
 /* container tree */
 #tree {
   width: 100%;
+  overflow: auto; /* ✅ bisa scroll semua arah */
 }
 
 /* SVG */
 #tree svg {
-  min-width: 600px; /* ✅ biar tidak terlalu sempit */
+  display: block;
+  width: 100%;
+  height: auto;
+  min-width: 600px;
 }
 
+/* tambahan aman */
+svg {
+  display: block;
+}
 /* MODAL */
 .modal {
   display: none;
@@ -322,7 +329,7 @@ function drawTree(data) {
   // ✅ baru hitung tinggi berdasarkan posisi node
   const nodes = root.descendants();
   const maxY = d3.max(nodes, d => d.y);
-  const height = maxY + 120;
+const height = maxY + 200;
 
   // ✅ buat svg setelah tahu height
   const svg = d3.select("#tree")
