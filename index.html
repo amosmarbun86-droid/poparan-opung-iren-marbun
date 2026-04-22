@@ -8,9 +8,8 @@
     /* ===== GLOBAL ===== */
 body {
   font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #e3f2fd, #ffffff);
-  margin: 0;
-  padding: 12px;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color: #e0f7fa;
 }
 
 /* ===== TITLE ===== */
@@ -22,12 +21,19 @@ h2 {
 
 /* ===== FORM ===== */
 .form-box {
-  background: white;
-  padding: 16px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
   border-radius: 12px;
   max-width: 500px;
   margin: 0 auto 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+
+  border: 1px solid rgba(255,255,255,0.15);
+
+  box-shadow: 
+    0 8px 25px rgba(0,0,0,0.3),
+    0 0 20px rgba(0,200,255,0.2);
 }
 
 .form-box input,
@@ -46,9 +52,19 @@ h2 {
   margin-top: 5px;
   border: none;
   border-radius: 8px;
-  background: #4CAF50;
+
+  background: linear-gradient(45deg, #00c6ff, #0072ff);
   color: white;
+
   cursor: pointer;
+
+  box-shadow: 0 0 10px rgba(0,200,255,0.6);
+  transition: all 0.3s ease;
+}
+
+.form-box button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(0,200,255,1);
 }
 
 /* ===== TREE AREA ===== */
@@ -122,6 +138,185 @@ h2 {
 /* ===== LINK SMOOTH ===== */
 .link {
   transition: stroke 0.3s;
+}
+
+/* ===== MODAL ===== */
+.modal {
+  display: none;
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.5);
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+
+.modal-content {
+  background:white;
+  padding:15px;
+  border-radius:10px;
+  width:90%;
+  max-width:300px;
+}
+
+.modal-actions button {
+  width:100%;
+  margin-top:5px;
+  padding:10px;
+  border-radius:6px;
+  border:none;
+  cursor:pointer;
+}
+
+.delete {
+  background:#e53935;
+  color:white;
+}
+ /* ===== NODE BASE ===== */
+.node rect {
+  backdrop-filter: blur(6px);
+  transition: all 0.3s ease;
+
+  /* 🔥 pakai animasi, bukan filter statis */
+  animation: glowPulse 2s infinite ease-in-out;
+}
+
+/* ===== HOVER ===== */
+.node:hover rect {
+  transform: scale(1.05);
+  stroke: #00e5ff;
+
+  /* glow lebih kuat saat disentuh */
+  animation-duration: 0.8s;
+}
+
+/* ===== ANIMASI MASUK ===== */
+.node {
+  animation: fadeInUp 0.4s ease;
+}
+
+/* ✅ FIX KURUNG */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== GLOW PULSE ===== */
+@keyframes glowPulse {
+  0% {
+/* ===== NODE TEXT ===== */
+.node text {
+  pointer-events: none;
+}
+
+/* ===== FIX KLIK EDIT & DELETE ===== */
+.edit-btn,
+.delete-btn {
+  pointer-events: all !important; /* 🔥 INI KUNCINYA */
+  cursor: pointer;
+  font-size: 16px;
+  user-select: none;
+}
+
+/* optional biar pasti */
+.node {
+  pointer-events: all;
+}
+
+/* ===== HOVER ICON ===== */
+.edit-btn:hover {
+  transform: scale(1.2);
+}
+
+.delete-btn:hover {
+  transform: scale(1.2);
+}
+
+/* ===== NODE BASE ===== */
+.node rect {
+  backdrop-filter: blur(6px);
+  transition: all 0.3s ease;
+
+  /* 🔥 animasi glow */
+  animation: glowPulse 2s infinite ease-in-out;
+
+  /* 🔥 optimasi biar smooth */
+  will-change: transform, filter;
+}
+
+/* ===== HOVER NODE ===== */
+.node:hover rect {
+  transform: scale(1.05);
+  stroke: #00e5ff;
+
+  /* glow lebih cepat saat hover */
+  animation-duration: 0.8s;
+}
+
+/* ===== ANIMASI MASUK ===== */
+.node {
+  animation: fadeInUp 0.4s ease;
+}
+
+/* ===== KEYFRAMES ===== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== GLOW PULSE ===== */
+@keyframes glowPulse {
+  0% {
+    filter: drop-shadow(0 0 4px rgba(0,229,255,0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(0,229,255,1));
+  }
+  100% {
+    filter: drop-shadow(0 0 4px rgba(0,229,255,0.4));
+  }
+}
+
+/* ===== GARIS TREE (FINAL MERGE) ===== */
+.link {
+  stroke: #64b5f6;
+  stroke-width: 2;
+  fill: none;
+
+  /* glow */
+  filter: drop-shadow(0 0 6px rgba(100,181,246,0.7));
+
+  /* animasi garis */
+  stroke-dasharray: 6 6;
+  animation: flowLine 2s linear infinite;
+
+  /* smooth */
+  transition: stroke 0.3s;
+}
+
+/* ===== ANIMASI ALIRAN GARIS ===== */
+@keyframes flowLine {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -12;
+  }
 }
 
 /* ===== MODAL ===== */
@@ -401,22 +596,22 @@ function drawTree(data) {
   );
 
   // ======================
-  // LINKS
-  // ======================
-  g.selectAll("path.link")
-    .data(root.links())
-    .enter()
-    .append("path")
-    .attr("fill", "none")
-    .attr("stroke", "#90caf9")
-    .attr("stroke-width", 2)
-    .attr("d", d => `
-      M${d.source.x},${d.source.y}
-      C${d.source.x},${(d.source.y + d.target.y)/2}
-       ${d.target.x},${(d.source.y + d.target.y)/2}
-       ${d.target.x},${d.target.y}
-    `);
-
+// LINKS (FIX FINAL)
+// ======================
+g.selectAll("path.link")
+  .data(root.links())
+  .enter()
+  .append("path")
+  .attr("class", "link") // ✅ WAJIB (ini yang kurang)
+  .attr("fill", "none")
+  .attr("stroke", "#90caf9")
+  .attr("stroke-width", 2)
+  .attr("d", d => `
+    M${d.source.x},${d.source.y}
+    C${d.source.x},${(d.source.y + d.target.y)/2}
+     ${d.target.x},${(d.source.y + d.target.y)/2}
+     ${d.target.x},${d.target.y}
+  `);
   // ======================
   // NODES
   // ======================
@@ -434,8 +629,9 @@ function drawTree(data) {
     .attr("width", 120)
     .attr("height", 55)
     .attr("rx", 10)
-    .attr("fill", "#fff")
-    .attr("stroke", "#90caf9");
+    .attr("fill", "rgba(255,255,255,0.15)")
+    .attr("stroke", "#00e5ff")
+    .attr("stroke-width", 1.5)
 
   // NAMA
   nodeGroup.append("text")
