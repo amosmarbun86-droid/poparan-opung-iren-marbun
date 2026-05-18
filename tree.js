@@ -390,3 +390,15 @@ export function drawTree(data) {
     .style("opacity", 1);
 
 }
+
+/* =========================
+   CLICK NODE
+========================= */
+
+node.style("cursor","pointer")
+
+.on("click",(event,d)=>{
+
+  openModal(d.data);
+
+});
