@@ -1,91 +1,255 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Pohon Silsilah</title>
+  <meta
+    name="viewport"
+    content="
+      width=device-width,
+      initial-scale=1.0,
+      maximum-scale=1.0,
+      user-scalable=no
+    "
+  >
 
-  <link rel="stylesheet" href="style.css">
+  <title>
+    🌳 Poparan Opung Iren Marbun
+  </title>
 
+  <!-- STYLE -->
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
+  <!-- D3 -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <!-- HTML2CANVAS -->
+  <script src="
+https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
+"></script>
+
 </head>
+
 <body>
 
-<h2>🌳 Poparan Opung Iren Marbun</h2>
+
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<header>
+
+  <h1>
+    🌳 Poparan Opung Iren Marbun
+  </h1>
+
+  <p>
+    Sistem Pohon Silsilah Keluarga
+  </p>
+
+</header>
+
+
+
+<!-- =========================
+     MAIN CONTAINER
+========================= -->
 
 <div class="container">
 
-  <div class="form-box">
 
-    <h3>Tambah Anggota</h3>
 
-    <input id="name" placeholder="Nama">
+  <!-- =========================
+       SIDEBAR FORM
+  ========================= -->
 
-    <input id="birth" type="date">
+  <aside class="form-box">
+
+    <h3>
+      Tambah Anggota
+    </h3>
+
+
+
+    <!-- SEARCH -->
+
+    <input
+      type="text"
+      id="search"
+      placeholder="🔍 Cari anggota..."
+    >
+
+
+
+    <!-- NAME -->
+
+    <input
+      id="name"
+      placeholder="Nama Lengkap"
+    >
+
+
+
+    <!-- BIRTH -->
+
+    <input
+      id="birth"
+      type="date"
+    >
+
+
+
+    <!-- PHOTO -->
+
+    <input
+      id="photo"
+      type="file"
+      accept="image/*"
+    >
+
+
+
+    <!-- FATHER -->
 
     <select id="father">
-  <option value="">-- Pilih Ayah --</option>
-</select>
 
-<select id="spouse">
-  <option value="">
-    -- Pilih Pasangan --
-  </option>
-</select>
-<select id="gender">
-
-  <option value="">
-    -- Jenis Kelamin --
-  </option>
-
-  <option value="male">
-    Laki-laki
-  </option>
-
-  <option value="female">
-    Perempuan
-  </option>
+      <option value="">
+        -- Pilih Ayah --
+      </option>
 
     </select>
-    <button id="addBtn">Tambah</button>
 
-    <button id="saveImageBtn">
-      📸 Simpan Gambar
+
+
+    <!-- SPOUSE -->
+
+    <select id="spouse">
+
+      <option value="">
+        -- Pilih Pasangan --
+      </option>
+
+    </select>
+
+
+
+    <!-- GENDER -->
+
+    <select id="gender">
+
+      <option value="">
+        -- Jenis Kelamin --
+      </option>
+
+      <option value="male">
+        ♂ Laki-laki
+      </option>
+
+      <option value="female">
+        ♀ Perempuan
+      </option>
+
+    </select>
+
+
+
+    <!-- BUTTON -->
+
+    <button id="addBtn">
+
+      ➕ Tambah Anggota
+
     </button>
 
-  </div>
 
-  <div class="tree-box">
+
+    <button id="saveImageBtn">
+
+      📸 Simpan Gambar
+
+    </button>
+
+
+
+  </aside>
+
+
+
+  <!-- =========================
+       TREE AREA
+  ========================= -->
+
+  <main class="tree-box">
+
     <div id="tree"></div>
-  </div>
+
+  </main>
+
+
 
 </div>
 
-<!-- MODAL -->
+
+
+<!-- =========================
+     MODAL
+========================= -->
+
 <div id="modal" class="modal">
 
   <div class="modal-content">
 
-    <h3>Edit Data</h3>
+    <h3>
+      ✏ Edit Data
+    </h3>
 
-    <input id="editName" placeholder="Nama">
 
-    <input id="editBirth" type="date">
+
+    <input
+      id="editName"
+      placeholder="Nama"
+    >
+
+
+
+    <input
+      id="editBirth"
+      type="date"
+    >
+
+
 
     <div class="modal-actions">
 
       <button onclick="saveEdit()">
-        Simpan
+
+        💾 Simpan
+
       </button>
 
-      <button onclick="deleteFromModal()" class="delete">
-        Hapus
+
+
+      <button
+        onclick="deleteFromModal()"
+        class="delete"
+      >
+
+        🗑 Hapus
+
       </button>
+
+
 
       <button onclick="closeModal()">
-        Batal
+
+        ❌ Batal
+
       </button>
 
     </div>
@@ -94,11 +258,54 @@
 
 </div>
 
-<script type="module" src="firebase.js"></script>
-<script type="module" src="tree.js"></script>
-<script type="module" src="modal.js"></script>
-<script type="module" src="export.js"></script>
-<script type="module" src="app.js"></script>
+
+
+<!-- =========================
+     LOADING SCREEN
+========================= -->
+
+<div id="loading">
+
+  <div class="loader"></div>
+
+  <p>
+    Loading Family Tree...
+  </p>
+
+</div>
+
+
+
+<!-- =========================
+     SCRIPT
+========================= -->
+
+<script
+  type="module"
+  src="firebase.js"
+></script>
+
+<script
+  type="module"
+  src="tree.js"
+></script>
+
+<script
+  type="module"
+  src="modal.js"
+></script>
+
+<script
+  type="module"
+  src="export.js"
+></script>
+
+<script
+  type="module"
+  src="app.js"
+></script>
+
+
 
 </body>
 </html>
