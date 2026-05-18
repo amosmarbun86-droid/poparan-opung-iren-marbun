@@ -395,10 +395,16 @@ export function drawTree(data) {
    CLICK NODE
 ========================= */
 
-node.style("cursor","pointer")
+node
+
+.style("cursor","pointer")
 
 .on("click",(event,d)=>{
 
-  openModal(d.data);
+  if(window.openModal){
+
+    window.openModal(d.data);
+
+  }
 
 });
