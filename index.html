@@ -209,34 +209,42 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
       ✏ Edit Data
     </h3>
 
-
-
     <input
       id="editName"
       placeholder="Nama"
     >
-
-
 
     <input
       id="editBirth"
       type="date"
     >
 
+    <select id="editGender">
 
+      <option value="">
+        -- Jenis Kelamin --
+      </option>
+
+      <option value="male">
+        ♂ Laki-laki
+      </option>
+
+      <option value="female">
+        ♀ Perempuan
+      </option>
+
+    </select>
 
     <div class="modal-actions">
 
-      <button onclick="saveEdit()">
+      <button id="saveEditBtn">
 
         💾 Simpan
 
       </button>
 
-
-
       <button
-        onclick="deleteFromModal()"
+        id="deleteBtn"
         class="delete"
       >
 
@@ -244,9 +252,7 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 
       </button>
 
-
-
-      <button onclick="closeModal()">
+      <button id="closeModalBtn">
 
         ❌ Batal
 
@@ -257,8 +263,6 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
   </div>
 
 </div>
-
-
 
 <!-- =========================
      LOADING SCREEN
