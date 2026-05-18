@@ -3,7 +3,7 @@ import { db } from './firebase.js';
 import {
   collection,
   addDoc,
-  getDocs
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 import {
@@ -32,48 +32,76 @@ document.getElementById("spouse");
 const genderEl =
 document.getElementById("gender");
 
+const photoEl =
+document.getElementById("photo");
+
+const searchEl =
+document.getElementById("search");
+
 const addBtn =
 document.getElementById("addBtn");
+
+const loadingEl =
+document.getElementById("loading");
 
 
 
 /* =========================
-   GET ALL PEOPLE
+   GLOBAL
 ========================= */
 
-async function getPeople() {
+let peopleData = [];
 
-  const snapshot =
-  await getDocs(
-    collection(db, "people")
-  );
 
-  let people = [];
 
-  snapshot.forEach(doc => {
+/* =========================
+   LOADING
+========================= */
 
-    people.push({
+function showLoading(){
 
-      id: doc.id,
+  loadingEl.style.display = "flex";
 
-      ...doc.data()
+}
 
-    });
+function hideLoading(){
 
-  });
+  loadingEl.style.display = "none";
 
-  return people;
 }
 
 
 
 /* =========================
-   LOAD SELECT OPTIONS
+   BASE64
 ========================= */
 
-function loadSelectOptions(people) {
+function convertToBase64(file){
 
-  /* RESET OPTION */
+  return new Promise((resolve)=>{
+
+    const reader =
+    new FileReader();
+
+    reader.readAsDataURL(file);
+
+    reader.onload = ()=>{
+
+      resolve(reader.result);
+
+    };
+
+  });
+
+}
+
+
+
+/* =========================
+   LOAD SELECT
+========================= */
+
+function loadSelectOptions(people){
 
   fatherEl.innerHTML = `
     <option value="">
@@ -87,19 +115,13 @@ function loadSelectOptions(people) {
     </option>
   `;
 
-  /* LOAD PEOPLE */
-
-  people.forEach(person => {
-
-    /* OPTION AYAH */
+  people.forEach(person=>{
 
     fatherEl.innerHTML += `
       <option value="${person.id}">
         ${person.name}
       </option>
     `;
-
-    /* OPTION PASANGAN */
 
     spouseEl.innerHTML += `
       <option value="${person.id}">
@@ -114,26 +136,57 @@ function loadSelectOptions(people) {
 
 
 /* =========================
-   LOAD TREE
+   REALTIME FIREBASE
 ========================= */
 
-async function loadTree() {
+function startRealtime(){
 
-  const people =
-  await getPeople();
+  showLoading();
 
-  /* LOAD DROPDOWN */
+  onSnapshot(
 
-  loadSelectOptions(people);
+    collection(db, "people"),
 
-  /* BUILD TREE */
+    (snapshot)=>{
+
+      peopleData = [];
+
+      snapshot.forEach(doc=>{
+
+        peopleData.push({
+
+          id: doc.id,
+
+          ...doc.data()
+
+        });
+
+      });
+
+      loadSelectOptions(peopleData);
+
+      renderTree(peopleData);
+
+      hideLoading();
+
+    }
+
+  );
+
+}
+
+
+
+/* =========================
+   RENDER TREE
+========================= */
+
+function renderTree(people){
 
   const treeData =
   buildTree(people);
 
-  /* DRAW TREE */
-
-  if (treeData) {
+  if(treeData){
 
     drawTree(treeData);
 
@@ -147,7 +200,7 @@ async function loadTree() {
    ADD PERSON
 ========================= */
 
-async function addPerson() {
+async function addPerson(){
 
   const name =
   nameEl.value.trim();
@@ -164,11 +217,12 @@ async function addPerson() {
   const gender =
   genderEl.value;
 
+  const photoFile =
+  photoEl.files[0];
 
 
-  /* VALIDATION */
 
-  if (!name) {
+  if(!name){
 
     alert("Nama wajib diisi");
 
@@ -178,9 +232,19 @@ async function addPerson() {
 
 
 
-  /* SAVE FIREBASE */
+  let photoBase64 = "";
+
+  if(photoFile){
+
+    photoBase64 =
+    await convertToBase64(photoFile);
+
+  }
+
+
 
   await addDoc(
+
     collection(db, "people"),
 
     {
@@ -196,15 +260,16 @@ async function addPerson() {
       spouse || null,
 
       gender:
-      gender || null
+      gender || null,
+
+      photo:
+      photoBase64 || null
 
     }
 
   );
 
 
-
-  /* RESET FORM */
 
   nameEl.value = "";
 
@@ -216,18 +281,68 @@ async function addPerson() {
 
   genderEl.value = "";
 
-
-
-  /* RELOAD TREE */
-
-  loadTree();
+  photoEl.value = "";
 
 }
 
 
 
 /* =========================
-   BUTTON EVENT
+   SEARCH REALTIME
+========================= */
+
+searchEl.addEventListener(
+
+  "input",
+
+  ()=>{
+
+    const keyword =
+    searchEl.value
+    .toLowerCase()
+    .trim();
+
+
+
+    const nodes =
+    document.querySelectorAll(
+      ".node"
+    );
+
+
+
+    nodes.forEach(node=>{
+
+      node.classList.remove(
+        "highlight-node"
+      );
+
+
+
+      const text =
+      node.innerText
+      .toLowerCase();
+
+
+
+      if(keyword && text.includes(keyword)){
+
+        node.classList.add(
+          "highlight-node"
+        );
+
+      }
+
+    });
+
+  }
+
+);
+
+
+
+/* =========================
+   EVENT
 ========================= */
 
 addBtn.addEventListener(
@@ -241,4 +356,4 @@ addBtn.addEventListener(
    START
 ========================= */
 
-loadTree();
+startRealtime();
