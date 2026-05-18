@@ -1,0 +1,117 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color: white;
+}
+
+h2 {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.container {
+  padding: 10px;
+}
+
+.form-box {
+  max-width: 500px;
+  margin: auto;
+
+  background: rgba(255,255,255,0.08);
+  border-radius: 15px;
+
+  padding: 15px;
+
+  backdrop-filter: blur(12px);
+}
+
+.form-box input,
+.form-box select,
+.form-box button {
+  width: 100%;
+  box-sizing: border-box;
+
+  margin-top: 8px;
+  padding: 10px;
+
+  border-radius: 8px;
+  border: none;
+}
+
+.form-box button {
+  background: #00bcd4;
+  color: white;
+  cursor: pointer;
+}
+
+.tree-box {
+  width: 100%;
+  height: 75vh;
+
+  margin-top: 10px;
+
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+#tree {
+  width: 100%;
+  height: 100%;
+
+  background-image:
+    linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)),
+    url('assets/bg.png');
+
+  background-size: cover;
+  background-position: center;
+}
+
+.node rect {
+  fill: rgba(255,255,255,0.12);
+
+  stroke: #00e5ff;
+
+  stroke-width: 1.5;
+
+  rx: 10;
+
+  filter: drop-shadow(0 0 8px rgba(0,229,255,0.7));
+}
+
+.link {
+  fill: none;
+
+  stroke: #90caf9;
+
+  stroke-width: 2;
+}
+
+.modal {
+  display: none;
+
+  position: fixed;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background: rgba(0,0,0,0.5);
+
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  width: 90%;
+  max-width: 320px;
+
+  background: white;
+  color: black;
+
+  border-radius: 12px;
+
+  padding: 15px;
+}
