@@ -115,3 +115,155 @@ h2 {
 
   padding: 15px;
 }
+
+/* =========================
+   LOADING
+========================= */
+
+#loading{
+
+  position: fixed;
+
+  inset: 0;
+
+  background: #050816;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+
+  z-index: 9999;
+
+  gap: 20px;
+
+  color: white;
+
+  font-size: 18px;
+
+}
+
+.loader{
+
+  width: 60px;
+
+  height: 60px;
+
+  border-radius: 50%;
+
+  border: 4px solid #00e5ff44;
+
+  border-top: 4px solid #00e5ff;
+
+  animation: spin 1s linear infinite;
+
+}
+
+@keyframes spin{
+
+  from{
+    transform: rotate(0deg);
+  }
+
+  to{
+    transform: rotate(360deg);
+  }
+
+}
+
+
+
+/* =========================
+   SEARCH
+========================= */
+
+#search{
+
+  width: 100%;
+
+  padding: 14px;
+
+  border-radius: 14px;
+
+  border: none;
+
+  outline: none;
+
+  margin-bottom: 14px;
+
+  background: rgba(255,255,255,0.08);
+
+  color: white;
+
+  font-size: 15px;
+
+}
+
+
+
+/* =========================
+   HIGHLIGHT NODE
+========================= */
+
+.highlight-node rect{
+
+  stroke: #00ff88 !important;
+
+  stroke-width: 4px !important;
+
+  filter:
+  drop-shadow(0 0 20px #00ff88);
+
+}
+
+
+
+/* =========================
+   GLASS UI
+========================= */
+
+.form-box{
+
+  backdrop-filter: blur(18px);
+
+  background:
+  rgba(255,255,255,0.05);
+
+  border:
+  1px solid rgba(255,255,255,0.1);
+
+  box-shadow:
+  0 0 25px #00e5ff22;
+
+}
+
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:900px){
+
+  .container{
+
+    flex-direction: column;
+
+  }
+
+  .form-box{
+
+    width: 100%;
+
+  }
+
+  .tree-box{
+
+    height: 75vh;
+
+  }
+
+}
