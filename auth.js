@@ -9,8 +9,8 @@ import {
 
 import {
   doc,
-  getDoc,
   updateDoc,
+  runTransaction,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
@@ -184,39 +184,76 @@ async function handleRegister(){
   try{
 
     const inviteRef = doc(db, "invites", token);
-    const inviteSnap = await getDoc(inviteRef);
 
-    if(!inviteSnap.exists()){
+    // Transaksi: baca + "kunci" token (used:true) secara atomic,
+    // supaya dua orang tidak bisa lolos memakai token yang sama
+    // meski submit hampir bersamaan.
+    try{
 
-      registerError.textContent =
-        "Token tidak ditemukan, cek lagi dengan admin";
+      await runTransaction(db, async (transaction)=>{
+
+        const inviteSnap = await transaction.get(inviteRef);
+
+        if(!inviteSnap.exists()){
+          throw new Error("not-found");
+        }
+
+        if(inviteSnap.data().used){
+          throw new Error("already-used");
+        }
+
+        transaction.update(inviteRef, {
+          used: true,
+          used_by_email: email,
+          used_at: serverTimestamp()
+        });
+
+      });
+
+    } catch(txErr){
+
+      if(txErr.message === "not-found"){
+
+        registerError.textContent =
+          "Token tidak ditemukan, cek lagi dengan admin";
+
+      } else if(txErr.message === "already-used"){
+
+        registerError.textContent =
+          "Token ini sudah pernah dipakai";
+
+      } else {
+
+        registerError.textContent =
+          "Gagal mendaftar, coba lagi";
+
+      }
 
       return;
 
     }
 
-    if(inviteSnap.data().used){
+    try{
 
-      registerError.textContent =
-        "Token ini sudah pernah dipakai";
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        token
+      );
 
-      return;
+    } catch(createErr){
+
+      // Token sudah terpakai duluan tapi akun gagal dibuat,
+      // lepaskan lagi tokennya supaya tidak hangus sia-sia.
+      await updateDoc(inviteRef, {
+        used: false,
+        used_by_email: null,
+        used_at: null
+      });
+
+      throw createErr;
 
     }
-
-    await createUserWithEmailAndPassword(
-      auth,
-      email,
-      token
-    );
-
-    await updateDoc(inviteRef, {
-
-      used: true,
-      used_by_email: email,
-      used_at: serverTimestamp()
-
-    });
 
     registerToken.value = "";
 
