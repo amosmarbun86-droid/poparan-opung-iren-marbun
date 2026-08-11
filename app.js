@@ -3,11 +3,13 @@ import { db } from './firebase.js';
 import {
   collection,
   addDoc,
-  onSnapshot
+  onSnapshot,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 import {
-  buildTree,
+  buildForest,
   drawTree
 } from './tree.js';
 
@@ -125,7 +127,7 @@ function loadSelectOptions(people){
    REALTIME FIREBASE
 ========================= */
 
-function startRealtime(){
+function startRealtime(treeId){
 
   showLoading();
 
@@ -135,9 +137,17 @@ function startRealtime(){
 
   }
 
-  unsubscribeSnapshot = onSnapshot(
+  const peopleQuery =
+  query(
 
     collection(db, "people"),
+    where("tree_id", "==", treeId)
+
+  );
+
+  unsubscribeSnapshot = onSnapshot(
+
+    peopleQuery,
 
     (snapshot)=>{
 
@@ -173,12 +183,12 @@ function startRealtime(){
 
 function renderTree(people){
 
-  const treeData =
-  buildTree(people);
+  const forestData =
+  buildForest(people);
 
-  if(treeData){
+  if(forestData && forestData.length > 0){
 
-    drawTree(treeData);
+    drawTree(forestData);
 
   }
 
@@ -226,6 +236,14 @@ async function addPerson(){
 
   }
 
+  if(!state.currentTreeId){
+
+    alert("Tidak ada silsilah yang aktif");
+
+    return;
+
+  }
+
 
 
   let photoBase64 = "";
@@ -244,6 +262,9 @@ async function addPerson(){
     collection(db, "people"),
 
     {
+
+      tree_id:
+      state.currentTreeId,
 
       name,
 
@@ -359,12 +380,30 @@ addBtn.addEventListener(
 
 
 /* =========================
-   AUTH-GATED START
-   Data hanya diambil setelah login berhasil
-   (event dikirim dari auth.js)
+   TREE-GATED START
+   Data hanya diambil setelah sebuah silsilah
+   dipilih/dibuat (event dikirim dari trees.js)
 ========================= */
 
-document.addEventListener("app:auth-ready", startRealtime);
+document.addEventListener("app:tree-selected", (e)=>{
+
+  startRealtime(e.detail.treeId);
+
+});
+
+document.addEventListener("app:tree-deselected", ()=>{
+
+  if(unsubscribeSnapshot){
+
+    unsubscribeSnapshot();
+    unsubscribeSnapshot = null;
+
+  }
+
+  state.people = [];
+  hideLoading();
+
+});
 
 document.addEventListener("app:auth-signed-out", ()=>{
 
