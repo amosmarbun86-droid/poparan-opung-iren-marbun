@@ -105,6 +105,172 @@ body.logged-out .login-screen {
   display: none;
 }
 
+/* =========================
+   DAFTAR SILSILAH (MULTI-TENANT)
+========================= */
+
+body.logged-out .trees-screen {
+  display: none;
+}
+
+body.no-tree-selected .app-shell {
+  display: none;
+}
+
+.trees-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  z-index: 90000;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+  padding: 40px 0;
+}
+
+body.no-tree-selected .trees-screen {
+  display: flex;
+}
+
+.trees-box {
+  width: 90%;
+  max-width: 440px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 15px;
+  padding: 25px;
+  backdrop-filter: blur(12px);
+  text-align: center;
+}
+
+.trees-box h2 {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-badge {
+  display: none;
+  font-size: 11px;
+  background: #ff9800;
+  color: #1a1a1a;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.current-tree-label {
+  font-size: 14px;
+  color: #cccccc;
+  font-weight: normal;
+}
+
+.trees-loading {
+  font-size: 13px;
+  color: #cccccc;
+  display: none;
+}
+
+.trees-list {
+  text-align: left;
+  margin-top: 10px;
+}
+
+.trees-empty {
+  font-size: 13px;
+  color: #cccccc;
+  text-align: center;
+}
+
+.tree-card {
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tree-card-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tree-tag {
+  font-size: 10px;
+  background: #00bcd4;
+  color: #1a1a1a;
+  padding: 2px 7px;
+  border-radius: 8px;
+}
+
+.tree-tag.admin {
+  background: #ff9800;
+}
+
+.tree-card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.tree-card-actions button {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  background: #00bcd4;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.invite-tree-btn {
+  background: #607d8b !important;
+}
+
+.trees-create-btn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #00bcd4;
+  color: white;
+  cursor: pointer;
+}
+
+.trees-join-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.trees-join-row input {
+  flex: 1;
+  box-sizing: border-box;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.trees-join-row button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #00bcd4;
+  color: white;
+  cursor: pointer;
+}
+
 h2 {
   text-align: center;
   margin-top: 15px;
