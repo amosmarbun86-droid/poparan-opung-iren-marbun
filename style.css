@@ -24,6 +24,87 @@ body {
   cursor: pointer;
 }
 
+/* =========================
+   AUTH GATE
+========================= */
+
+body.logged-out .app-shell {
+  display: none;
+}
+
+.login-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  z-index: 100000;
+  justify-content: center;
+  align-items: center;
+}
+
+body.logged-out .login-screen {
+  display: flex;
+}
+
+.login-box {
+  width: 90%;
+  max-width: 360px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 15px;
+  padding: 25px;
+  backdrop-filter: blur(12px);
+  text-align: center;
+}
+
+.login-box h2 {
+  margin-top: 0;
+}
+
+.login-box input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.login-box button {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #00bcd4;
+  color: white;
+  cursor: pointer;
+}
+
+.login-error {
+  color: #ff6b6b;
+  font-size: 13px;
+  min-height: 18px;
+  margin-top: 10px;
+}
+
+.login-switch {
+  font-size: 13px;
+  color: #cccccc;
+  margin-top: 14px;
+}
+
+.login-switch a {
+  color: #00e5ff;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.hidden-form {
+  display: none;
+}
+
 h2 {
   text-align: center;
   margin-top: 15px;
@@ -175,7 +256,7 @@ h2 {
 
   background: #050816;
 
-  display: flex;
+  display: none;
 
   flex-direction: column;
 
@@ -477,6 +558,24 @@ body.light-theme .modal-content input,
 body.light-theme .modal-content select {
   background: rgba(0,0,0,0.06);
   color: #10161d;
+}
+
+body.light-theme .login-screen {
+  background: linear-gradient(135deg,#e0f7fa,#ffffff,#e1f5fe);
+}
+
+body.light-theme .login-box {
+  background: rgba(255,255,255,0.75);
+  color: #10161d;
+}
+
+body.light-theme .login-box input {
+  background: rgba(0,0,0,0.06);
+  color: #10161d;
+}
+
+body.light-theme .login-switch {
+  color: #445566;
 }
 
 body.light-theme #loading {
