@@ -127,6 +127,31 @@ export function buildForest(people) {
 
   });
 
+  /* =========================
+     URUTKAN ANAK BERDASARKAN TANGGAL LAHIR
+     Anak sulung (tanggal lahir paling awal) tampil
+     paling kiri, lalu berurutan sampai anak bungsu.
+     Yang tanggal lahirnya kosong ditaruh paling akhir.
+  ========================= */
+
+  function byBirthDate(a, b){
+
+    if(!a.birth_date && !b.birth_date) return 0;
+    if(!a.birth_date) return 1;
+    if(!b.birth_date) return -1;
+
+    return a.birth_date.localeCompare(b.birth_date);
+
+  }
+
+  Object.values(map).forEach(person => {
+
+    person.children.sort(byBirthDate);
+
+  });
+
+  roots.sort(byBirthDate);
+
   return roots;
 
 }
