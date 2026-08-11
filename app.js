@@ -57,6 +57,14 @@ document.getElementById("loading");
 
 
 /* =========================
+   GLOBAL
+========================= */
+
+let unsubscribeSnapshot = null;
+
+
+
+/* =========================
    LOADING
 ========================= */
 
@@ -121,7 +129,13 @@ function startRealtime(){
 
   showLoading();
 
-  onSnapshot(
+  if(unsubscribeSnapshot){
+
+    unsubscribeSnapshot();
+
+  }
+
+  unsubscribeSnapshot = onSnapshot(
 
     collection(db, "people"),
 
@@ -345,7 +359,23 @@ addBtn.addEventListener(
 
 
 /* =========================
-   START
+   AUTH-GATED START
+   Data hanya diambil setelah login berhasil
+   (event dikirim dari auth.js)
 ========================= */
 
-startRealtime();
+document.addEventListener("app:auth-ready", startRealtime);
+
+document.addEventListener("app:auth-signed-out", ()=>{
+
+  if(unsubscribeSnapshot){
+
+    unsubscribeSnapshot();
+    unsubscribeSnapshot = null;
+
+  }
+
+  state.people = [];
+  hideLoading();
+
+});
