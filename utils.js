@@ -34,18 +34,43 @@ export function calculateAge(birthDate, deathDate) {
 
 export function populateSelect(selectEl, people, placeholder, selectedId = "", excludeId = null) {
 
-  selectEl.innerHTML = `<option value="">${placeholder}</option>`;
+  selectEl.innerHTML = "";
+
+  const placeholderOption = document.createElement("option");
+  placeholderOption.value = "";
+  placeholderOption.textContent = placeholder;
+  selectEl.appendChild(placeholderOption);
 
   people.forEach(person => {
 
     if (excludeId && person.id === excludeId) return;
 
-    const isSelected = person.id === selectedId ? "selected" : "";
+    const option = document.createElement("option");
+    option.value = person.id;
+    option.textContent = person.name;
 
-    selectEl.innerHTML += `
-      <option value="${person.id}" ${isSelected}>
-        ${person.name}
-      </option>
-    `;
+    if (person.id === selectedId) {
+      option.selected = true;
+    }
+
+    selectEl.appendChild(option);
   });
+}
+
+/* =========================
+   ESCAPE HTML
+   Dipakai sebelum menaruh teks dari data (nama, email, dll)
+   ke dalam innerHTML, supaya tidak bisa disisipi tag/script (XSS).
+========================= */
+
+export function escapeHtml(text) {
+
+  if (text === null || text === undefined) return "";
+
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
