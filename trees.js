@@ -351,14 +351,17 @@ async function createTree(){
 
     });
 
-    await addDoc(collection(db, "tree_members"), {
+    await setDoc(
+      doc(db, "tree_members", `${treeRef.id}_${state.currentUser.uid}`),
+      {
 
-      tree_id: treeRef.id,
-      uid: state.currentUser.uid,
-      role: "owner",
-      joined_at: serverTimestamp()
+        tree_id: treeRef.id,
+        uid: state.currentUser.uid,
+        role: "owner",
+        joined_at: serverTimestamp()
 
-    });
+      }
+    );
 
     selectTree(treeRef.id, name.trim());
 
@@ -545,14 +548,17 @@ async function joinTree(){
 
     }
 
-    await addDoc(collection(db, "tree_members"), {
+    await setDoc(
+      doc(db, "tree_members", `${invite.tree_id}_${state.currentUser.uid}`),
+      {
 
-      tree_id: invite.tree_id,
-      uid: state.currentUser.uid,
-      role: "member",
-      joined_at: serverTimestamp()
+        tree_id: invite.tree_id,
+        uid: state.currentUser.uid,
+        role: "member",
+        joined_at: serverTimestamp()
 
-    });
+      }
+    );
 
     await updateDoc(inviteRef, {
 
