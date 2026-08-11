@@ -10,6 +10,10 @@ import {
 
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+import { state } from './store.js';
+
+import { populateSelect } from './utils.js';
+
 
 
 /* =========================
@@ -25,8 +29,20 @@ document.getElementById("editName");
 const editBirth =
 document.getElementById("editBirth");
 
+const editDeath =
+document.getElementById("editDeath");
+
 const editGender =
 document.getElementById("editGender");
+
+const editFather =
+document.getElementById("editFather");
+
+const editMother =
+document.getElementById("editMother");
+
+const editSpouse =
+document.getElementById("editSpouse");
 
 const saveBtn =
 document.getElementById("saveEditBtn");
@@ -69,8 +85,43 @@ window.openModal = function(person){
 
 
 
+  editDeath.value =
+  person.death_date || "";
+
+
+
   editGender.value =
   person.gender || "";
+
+
+
+  populateSelect(
+    editFather,
+    state.people,
+    "-- Pilih Ayah --",
+    person.father_id || "",
+    person.id
+  );
+
+
+
+  populateSelect(
+    editMother,
+    state.people,
+    "-- Pilih Ibu --",
+    person.mother_id || "",
+    person.id
+  );
+
+
+
+  populateSelect(
+    editSpouse,
+    state.people,
+    "-- Pilih Pasangan --",
+    person.spouse_id || "",
+    person.id
+  );
 
 }
 
@@ -110,8 +161,20 @@ async function saveEdit(){
       birth_date:
       editBirth.value,
 
+      death_date:
+      editDeath.value || null,
+
       gender:
-      editGender.value
+      editGender.value,
+
+      father_id:
+      editFather.value || null,
+
+      mother_id:
+      editMother.value || null,
+
+      spouse_id:
+      editSpouse.value || null
 
     }
 
