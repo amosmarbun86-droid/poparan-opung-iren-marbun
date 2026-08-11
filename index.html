@@ -133,6 +133,10 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
       ➕ Buat Silsilah Baru
     </button>
 
+    <button id="manageTokensBtn" class="trees-create-btn admin-tokens-btn" style="display:none;">
+      🛠️ Kelola Token Akun (Admin)
+    </button>
+
     <div class="trees-join-row">
 
       <input
@@ -149,6 +153,43 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 
     <button id="treesLogoutBtn" class="theme-btn">
       🚪 Keluar
+    </button>
+
+  </div>
+
+</div>
+
+
+
+<!-- =========================
+     LAYAR ADMIN: KELOLA TOKEN AKUN
+     Hanya muncul untuk super_admin.
+========================= -->
+
+<div id="adminTokensScreen" class="admin-tokens-screen">
+
+  <div class="trees-box">
+
+    <h2>
+      🛠️ Kelola Token Akun
+    </h2>
+
+    <p class="trees-hint">
+      Token di sini dipakai orang baru untuk daftar akun
+      (bukan untuk gabung ke satu silsilah tertentu).
+      Token juga otomatis jadi password akun barunya.
+    </p>
+
+    <p id="accountTokensLoading" class="trees-loading">Memuat...</p>
+
+    <div id="accountTokensList" class="trees-list"></div>
+
+    <button id="generateAccountTokenBtn" class="trees-create-btn">
+      ➕ Generate Token Baru
+    </button>
+
+    <button id="backToTreesBtn" class="theme-btn">
+      ⬅ Kembali
     </button>
 
   </div>
