@@ -62,6 +62,9 @@ document.getElementById("registerError");
 const logoutBtn =
 document.getElementById("logoutBtn");
 
+const treesLogoutBtn =
+document.getElementById("treesLogoutBtn");
+
 
 
 /* =========================
@@ -267,6 +270,12 @@ registerToken.addEventListener("keydown", (e)=>{
 ========================= */
 
 logoutBtn.addEventListener("click", ()=>{
+
+  signOut(auth);
+
+});
+
+treesLogoutBtn.addEventListener("click", ()=>{
 
   signOut(auth);
 
