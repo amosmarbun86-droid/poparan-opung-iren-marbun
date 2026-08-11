@@ -147,7 +147,21 @@ async function saveEdit(){
 
   if(!currentId) return;
 
+  const name = editName.value.trim();
 
+  if(!name){
+
+    alert("Nama wajib diisi");
+    return;
+
+  }
+
+  if(editBirth.value && editDeath.value && editDeath.value < editBirth.value){
+
+    alert("Tanggal meninggal tidak boleh lebih awal dari tanggal lahir");
+    return;
+
+  }
 
   await updateDoc(
 
@@ -155,8 +169,7 @@ async function saveEdit(){
 
     {
 
-      name:
-      editName.value,
+      name,
 
       birth_date:
       editBirth.value,
