@@ -48,6 +48,24 @@ document.getElementById("adminBadge");
 const currentTreeLabelEl =
 document.getElementById("currentTreeLabel");
 
+const manageTokensBtn =
+document.getElementById("manageTokensBtn");
+
+const adminTokensScreen =
+document.getElementById("adminTokensScreen");
+
+const generateAccountTokenBtn =
+document.getElementById("generateAccountTokenBtn");
+
+const accountTokensListEl =
+document.getElementById("accountTokensList");
+
+const accountTokensLoadingEl =
+document.getElementById("accountTokensLoading");
+
+const backToTreesBtn =
+document.getElementById("backToTreesBtn");
+
 
 
 /* =========================
@@ -473,6 +491,149 @@ changeTreeBtn.addEventListener("click", ()=>{
 
 
 /* =========================
+   PANEL ADMIN: KELOLA TOKEN AKUN
+   Hanya untuk super_admin. Menggantikan
+   cara lama (bikin token manual di
+   Firebase Console koleksi "invites").
+========================= */
+
+manageTokensBtn.addEventListener("click", ()=>{
+
+  document.body.classList.add("admin-tokens-open");
+
+  loadAccountTokens();
+
+});
+
+backToTreesBtn.addEventListener("click", ()=>{
+
+  document.body.classList.remove("admin-tokens-open");
+
+});
+
+async function loadAccountTokens(){
+
+  accountTokensLoadingEl.style.display = "block";
+  accountTokensListEl.innerHTML = "";
+
+  const snap =
+  await getDocs(collection(db, "invites"));
+
+  let invites = [];
+
+  snap.forEach(d=>{
+
+    invites.push({ id: d.id, ...d.data() });
+
+  });
+
+  // Terbaru duluan (kalau ada created_at, jatuh ke urutan asli kalau tidak)
+  invites.reverse();
+
+  renderAccountTokens(invites);
+
+  accountTokensLoadingEl.style.display = "none";
+
+}
+
+function renderAccountTokens(invites){
+
+  if(invites.length === 0){
+
+    accountTokensListEl.innerHTML =
+      `<p class="trees-empty">Belum ada token akun. Klik "Generate Token Baru" untuk bikin.</p>`;
+
+    return;
+
+  }
+
+  accountTokensListEl.innerHTML = "";
+
+  invites.forEach(inv=>{
+
+    const row =
+    document.createElement("div");
+
+    row.className = "tree-card";
+
+    row.innerHTML = `
+      <div class="tree-card-info">
+        <strong class="token-code">${inv.id}</strong>
+        <span class="tree-tag ${inv.used ? 'admin' : ''}">
+          ${inv.used ? 'Sudah dipakai' : 'Belum dipakai'}
+        </span>
+        ${inv.used_by_email ? `<span class="token-used-by">oleh ${inv.used_by_email}</span>` : ''}
+      </div>
+      <div class="tree-card-actions">
+        <button class="copy-token-btn">📋 Salin</button>
+      </div>
+    `;
+
+    row.querySelector(".copy-token-btn")
+      .addEventListener("click", ()=>{
+
+        copyToken(inv.id);
+
+      });
+
+    accountTokensListEl.appendChild(row);
+
+  });
+
+}
+
+function copyToken(token){
+
+  if(navigator.clipboard && navigator.clipboard.writeText){
+
+    navigator.clipboard.writeText(token)
+      .then(()=> alert("Token disalin: " + token))
+      .catch(()=> prompt("Salin token ini manual:", token));
+
+  } else {
+
+    prompt("Salin token ini manual:", token);
+
+  }
+
+}
+
+generateAccountTokenBtn.addEventListener("click", async ()=>{
+
+  generateAccountTokenBtn.disabled = true;
+
+  try{
+
+    const token =
+    generateToken();
+
+    await setDoc(doc(db, "invites", token), {
+
+      used: false,
+      created_by: state.currentUser.uid,
+      created_at: serverTimestamp()
+
+    });
+
+    await loadAccountTokens();
+
+    copyToken(token);
+
+  } catch(err){
+
+    alert("Gagal membuat token, coba lagi.");
+
+  } finally {
+
+    generateAccountTokenBtn.disabled = false;
+
+  }
+
+});
+
+
+
+/* =========================
    MULAI SETELAH LOGIN
    (dikirim dari auth.js)
 ========================= */
@@ -492,6 +653,9 @@ document.addEventListener("app:auth-ready", async (e)=>{
   adminBadgeEl.style.display =
   state.isSuperAdmin ? "inline-block" : "none";
 
+  manageTokensBtn.style.display =
+  state.isSuperAdmin ? "block" : "none";
+
   showTreesScreen();
 
 });
@@ -504,5 +668,6 @@ document.addEventListener("app:auth-signed-out", ()=>{
   state.currentTreeName = "";
 
   document.body.classList.add("no-tree-selected");
+  document.body.classList.remove("admin-tokens-open");
 
 });
