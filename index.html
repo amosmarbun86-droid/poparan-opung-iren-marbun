@@ -16,7 +16,7 @@
   >
 
   <title>
-    🌳 Poparan Opung Iren Marbun
+    🌳 Trahku
   </title>
 
   <!-- STYLE -->
@@ -38,7 +38,7 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 
 </head>
 
-<body class="logged-out">
+<body class="logged-out no-tree-selected">
 
 
 
@@ -111,18 +111,70 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 
 
 <!-- =========================
+     LAYAR DAFTAR SILSILAH
+     Muncul setelah login, sebelum
+     satu silsilah dipilih/dibuka.
+========================= -->
+
+<div id="treesScreen" class="trees-screen">
+
+  <div class="trees-box">
+
+    <h2>
+      🌳 Silsilah Saya
+      <span id="adminBadge" class="admin-badge">Mode Admin</span>
+    </h2>
+
+    <p id="treesLoading" class="trees-loading">Memuat...</p>
+
+    <div id="treesList" class="trees-list"></div>
+
+    <button id="createTreeBtn" class="trees-create-btn">
+      ➕ Buat Silsilah Baru
+    </button>
+
+    <div class="trees-join-row">
+
+      <input
+        id="joinTreeToken"
+        type="text"
+        placeholder="Token silsilah dari pemiliknya"
+      >
+
+      <button id="joinTreeBtn">
+        Gabung
+      </button>
+
+    </div>
+
+    <button id="treesLogoutBtn" class="theme-btn">
+      🚪 Keluar
+    </button>
+
+  </div>
+
+</div>
+
+
+
+<!-- =========================
      HEADER
 ========================= -->
 
 <header class="app-shell">
 
   <h1>
-    🌳 Poparan Opung Iren Marbun
+    🌳 Trahku
+    <span id="currentTreeLabel" class="current-tree-label"></span>
   </h1>
 
   <p>
     Sistem Pohon Silsilah Keluarga
   </p>
+
+  <button id="changeTreeBtn" class="theme-btn">
+    🔄 Ganti Silsilah
+  </button>
 
   <button id="themeToggleBtn" class="theme-btn">
     ☀️ Mode Terang
@@ -445,6 +497,11 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 <script
   type="module"
   src="auth.js"
+></script>
+
+<script
+  type="module"
+  src="trees.js"
 ></script>
 
 <script
