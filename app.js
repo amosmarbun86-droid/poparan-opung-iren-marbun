@@ -11,6 +11,10 @@ import {
   drawTree
 } from './tree.js';
 
+import { state } from './store.js';
+
+import { populateSelect } from './utils.js';
+
 
 
 /* =========================
@@ -23,8 +27,14 @@ document.getElementById("name");
 const birthEl =
 document.getElementById("birth");
 
+const deathEl =
+document.getElementById("death");
+
 const fatherEl =
 document.getElementById("father");
+
+const motherEl =
+document.getElementById("mother");
 
 const spouseEl =
 document.getElementById("spouse");
@@ -43,14 +53,6 @@ document.getElementById("addBtn");
 
 const loadingEl =
 document.getElementById("loading");
-
-
-
-/* =========================
-   GLOBAL
-========================= */
-
-let peopleData = [];
 
 
 
@@ -103,33 +105,9 @@ function convertToBase64(file){
 
 function loadSelectOptions(people){
 
-  fatherEl.innerHTML = `
-    <option value="">
-      -- Pilih Ayah --
-    </option>
-  `;
-
-  spouseEl.innerHTML = `
-    <option value="">
-      -- Pilih Pasangan --
-    </option>
-  `;
-
-  people.forEach(person=>{
-
-    fatherEl.innerHTML += `
-      <option value="${person.id}">
-        ${person.name}
-      </option>
-    `;
-
-    spouseEl.innerHTML += `
-      <option value="${person.id}">
-        ${person.name}
-      </option>
-    `;
-
-  });
+  populateSelect(fatherEl, people, "-- Pilih Ayah --");
+  populateSelect(motherEl, people, "-- Pilih Ibu --");
+  populateSelect(spouseEl, people, "-- Pilih Pasangan --");
 
 }
 
@@ -149,11 +127,11 @@ function startRealtime(){
 
     (snapshot)=>{
 
-      peopleData = [];
+      state.people = [];
 
       snapshot.forEach(doc=>{
 
-        peopleData.push({
+        state.people.push({
 
           id: doc.id,
 
@@ -163,10 +141,8 @@ function startRealtime(){
 
       });
 
-      loadSelectOptions(peopleData);
-
-      renderTree(peopleData);
-
+      loadSelectOptions(state.people);
+      renderTree(state.people);
       hideLoading();
 
     }
@@ -208,8 +184,14 @@ async function addPerson(){
   const birth =
   birthEl.value;
 
+  const death =
+  deathEl.value;
+
   const father =
   fatherEl.value;
+
+  const mother =
+  motherEl.value;
 
   const spouse =
   spouseEl.value;
@@ -253,8 +235,14 @@ async function addPerson(){
 
       birth_date: birth,
 
+      death_date:
+      death || null,
+
       father_id:
       father || null,
+
+      mother_id:
+      mother || null,
 
       spouse_id:
       spouse || null,
@@ -275,7 +263,11 @@ async function addPerson(){
 
   birthEl.value = "";
 
+  deathEl.value = "";
+
   fatherEl.value = "";
+
+  motherEl.value = "";
 
   spouseEl.value = "";
 
