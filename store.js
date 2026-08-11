@@ -6,5 +6,13 @@
 ========================= */
 
 export const state = {
-  people: []
+  people: [],
+
+  // Data akun yang sedang login
+  currentUser: null,
+  isSuperAdmin: false,
+
+  // Silsilah (tree) yang sedang aktif dibuka
+  currentTreeId: null,
+  currentTreeName: ""
 };
