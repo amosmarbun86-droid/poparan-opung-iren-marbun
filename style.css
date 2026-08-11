@@ -3,6 +3,25 @@ body {
   font-family: Arial, sans-serif;
   background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
   color: white;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  color: #cccccc;
+  margin-top: 8px;
+}
+
+.theme-btn {
+  margin: 10px auto 0;
+  display: block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  color: white;
+  cursor: pointer;
 }
 
 h2 {
@@ -67,16 +86,44 @@ h2 {
   background-position: center;
 }
 
-.node rect {
-  fill: rgba(255,255,255,0.12);
+.node-box {
+  fill: rgba(0,0,0,0.65);
 
   stroke: #00e5ff;
 
-  stroke-width: 1.5;
+  stroke-width: 2;
 
-  rx: 10;
+  filter: drop-shadow(0 0 12px #00e5ff);
+}
 
-  filter: drop-shadow(0 0 8px rgba(0,229,255,0.7));
+.node-text {
+  text-anchor: middle;
+}
+
+.node-name {
+  fill: #ffffff;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.node-birth {
+  fill: #cccccc;
+  font-size: 12px;
+}
+
+.node-status {
+  fill: #ffd54f;
+  font-size: 11px;
+}
+
+.node-gender {
+  fill: #00e5ff;
+  font-size: 11px;
+}
+
+.node-parents {
+  fill: #9fd8ff;
+  font-size: 10px;
 }
 
 .link {
@@ -351,4 +398,88 @@ h2 {
 
   background: #ff2b52;
 
+}
+
+
+
+/* =========================
+   LIGHT THEME
+========================= */
+
+body.light-theme {
+  background: linear-gradient(135deg,#e0f7fa,#ffffff,#e1f5fe);
+  color: #10161d;
+}
+
+body.light-theme .form-box {
+  background: rgba(255,255,255,0.75);
+  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 0 20px rgba(2,136,209,0.15);
+}
+
+body.light-theme .field-label {
+  color: #445566;
+}
+
+body.light-theme .theme-btn {
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.15);
+  color: #10161d;
+}
+
+body.light-theme #search {
+  background: rgba(0,0,0,0.06);
+  color: #10161d;
+}
+
+body.light-theme #tree {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.75)),
+    url('assets/bg.png');
+}
+
+body.light-theme .node-box {
+  fill: rgba(255,255,255,0.9);
+  stroke: #0288d1;
+  filter: drop-shadow(0 0 8px rgba(2,136,209,0.5));
+}
+
+body.light-theme .node-name {
+  fill: #0d1b2a;
+}
+
+body.light-theme .node-birth {
+  fill: #455a64;
+}
+
+body.light-theme .node-status {
+  fill: #e65100;
+}
+
+body.light-theme .node-gender {
+  fill: #0288d1;
+}
+
+body.light-theme .node-parents {
+  fill: #01579b;
+}
+
+body.light-theme .link {
+  stroke: #0288d1;
+}
+
+body.light-theme .modal-content {
+  background: #ffffff;
+  color: #10161d;
+}
+
+body.light-theme .modal-content input,
+body.light-theme .modal-content select {
+  background: rgba(0,0,0,0.06);
+  color: #10161d;
+}
+
+body.light-theme #loading {
+  background: #eef3f7;
+  color: #10161d;
 }
