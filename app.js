@@ -88,20 +88,60 @@ function hideLoading(){
    BASE64
 ========================= */
 
-function convertToBase64(file){
+/* =========================
+   COMPRESS PHOTO
+   Foto disimpan langsung sebagai base64 di dokumen Firestore
+   (batas 1MB per dokumen), jadi foto perlu diperkecil dulu
+   supaya tidak gagal simpan / bikin dokumen kebesaran.
+   Foto di-resize maksimal 500px di sisi terpanjang dan
+   dikompres ke JPEG kualitas 0.7.
+========================= */
 
-  return new Promise((resolve)=>{
+function compressImage(file, maxSize = 500, quality = 0.7){
 
-    const reader =
-    new FileReader();
+  return new Promise((resolve, reject)=>{
 
-    reader.readAsDataURL(file);
+    const img = new Image();
+    const reader = new FileReader();
 
-    reader.onload = ()=>{
+    reader.onload = (e)=>{
 
-      resolve(reader.result);
+      img.onload = ()=>{
+
+        let { width, height } = img;
+
+        if(width > height && width > maxSize){
+
+          height = Math.round(height * (maxSize / width));
+          width = maxSize;
+
+        } else if(height > maxSize){
+
+          width = Math.round(width * (maxSize / height));
+          height = maxSize;
+
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        resolve(canvas.toDataURL("image/jpeg", quality));
+
+      };
+
+      img.onerror = () => reject(new Error("Gagal memuat gambar"));
+
+      img.src = e.target.result;
 
     };
+
+    reader.onerror = () => reject(new Error("Gagal membaca file"));
+
+    reader.readAsDataURL(file);
 
   });
 
@@ -244,14 +284,38 @@ async function addPerson(){
 
   }
 
+  if(birth && death && death < birth){
+
+    alert("Tanggal meninggal tidak boleh lebih awal dari tanggal lahir");
+
+    return;
+
+  }
+
 
 
   let photoBase64 = "";
 
   if(photoFile){
 
-    photoBase64 =
-    await convertToBase64(photoFile);
+    if(!photoFile.type.startsWith("image/")){
+
+      alert("File foto harus berupa gambar");
+      return;
+
+    }
+
+    try{
+
+      photoBase64 =
+      await compressImage(photoFile);
+
+    } catch(err){
+
+      alert("Gagal memproses foto, coba foto lain");
+      return;
+
+    }
 
   }
 
