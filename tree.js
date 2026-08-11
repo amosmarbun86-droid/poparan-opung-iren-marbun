@@ -1,9 +1,18 @@
 import { calculateAge } from './utils.js';
 
-export function buildTree(people) {
+/* =========================
+   BUILD FOREST
+   Sekarang bisa lebih dari satu akar (root).
+   Setiap orang yang tidak punya Ayah/Ibu akan
+   otomatis menjadi akar keturunan (poparan) baru,
+   sehingga orang lain juga bisa mulai silsilah
+   sendiri tanpa menimpa silsilah yang sudah ada.
+========================= */
+
+export function buildForest(people) {
 
   let map = {};
-  let root = null;
+  let roots = [];
 
   /* =========================
      CREATE MAP
@@ -112,13 +121,13 @@ export function buildTree(people) {
     }
     else{
 
-      root = map[person.id];
+      roots.push(map[person.id]);
 
     }
 
   });
 
-  return root;
+  return roots;
 
 }
 
@@ -126,9 +135,16 @@ export function buildTree(people) {
 
 /* =========================
    DRAW TREE
+   "data" bisa berupa satu objek root (kompatibilitas
+   lama) ATAU array beberapa root (forest), sehingga
+   beberapa silsilah/keturunan bisa tampil berdampingan
+   dalam satu kanvas.
 ========================= */
 
 export function drawTree(data) {
+
+  const roots =
+  Array.isArray(data) ? data : [data];
 
   const container =
   document.getElementById("tree");
@@ -185,18 +201,61 @@ export function drawTree(data) {
 
 
   /* =========================
-     TREE
+     LAYOUT SETIAP POHON
+     (poparan) SECARA BERDAMPINGAN
   ========================= */
-
-  const root =
-  d3.hierarchy(data);
 
   const treeLayout =
   d3.tree()
 
     .nodeSize([240,200]);
 
-  treeLayout(root);
+  const GAP = 160;
+
+  let offsetX = 0;
+
+  let allNodes = [];
+  let allLinks = [];
+
+  roots.forEach(rootData=>{
+
+    const root =
+    d3.hierarchy(rootData);
+
+    treeLayout(root);
+
+    let minX = Infinity;
+    let maxX = -Infinity;
+
+    root.each(d=>{
+
+      if(d.x < minX) minX = d.x;
+      if(d.x > maxX) maxX = d.x;
+
+    });
+
+    const shift =
+    offsetX - minX;
+
+    root.each(d=>{
+
+      d.x += shift;
+
+    });
+
+    offsetX =
+    maxX + shift + GAP;
+
+    allNodes =
+    allNodes.concat(root.descendants());
+
+    allLinks =
+    allLinks.concat(root.links());
+
+  });
+
+  const forestWidth =
+  offsetX - GAP;
 
 
 
@@ -205,7 +264,7 @@ export function drawTree(data) {
   ========================= */
 
   const startX =
-  width / 2;
+  (width - forestWidth) / 2;
 
   const startY =
   100;
@@ -223,7 +282,7 @@ export function drawTree(data) {
 
   g.selectAll("path.link")
 
-    .data(root.links())
+    .data(allLinks)
 
     .enter()
 
@@ -254,7 +313,7 @@ export function drawTree(data) {
 
   const node = g.selectAll("g.node")
 
-    .data(root.descendants())
+    .data(allNodes)
 
     .enter()
 
