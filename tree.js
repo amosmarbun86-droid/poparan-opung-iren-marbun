@@ -1,10 +1,9 @@
+import { calculateAge } from './utils.js';
+
 export function buildTree(people) {
 
   let map = {};
-
   let root = null;
-
-
 
   /* =========================
      CREATE MAP
@@ -25,7 +24,7 @@ export function buildTree(people) {
 
 
   /* =========================
-     LOAD SPOUSE NAME
+     LOAD SPOUSE / FATHER / MOTHER NAME
   ========================= */
 
   people.forEach(person => {
@@ -49,30 +48,68 @@ export function buildTree(people) {
 
     }
 
+    if(person.father_id){
+
+      const father =
+      people.find(
+
+        p => p.id === person.father_id
+
+      );
+
+      if(father){
+
+        map[person.id]
+        .father_name =
+        father.name;
+
+      }
+
+    }
+
+    if(person.mother_id){
+
+      const mother =
+      people.find(
+
+        p => p.id === person.mother_id
+
+      );
+
+      if(mother){
+
+        map[person.id]
+        .mother_name =
+        mother.name;
+
+      }
+
+    }
+
   });
 
 
 
   /* =========================
      BUILD TREE
+     Prioritas: Ayah, kalau tidak ada pakai Ibu,
+     supaya anak tidak muncul dobel di dua cabang.
   ========================= */
 
   people.forEach(person => {
 
-    if(
+    const parentId =
+      (person.father_id && map[person.father_id]) ? person.father_id :
+      (person.mother_id && map[person.mother_id]) ? person.mother_id :
+      null;
 
-      person.father_id &&
+    if(parentId){
 
-      map[person.father_id]
-
-    ){
-
-      map[person.father_id]
+      map[parentId]
       .children
       .push(map[person.id]);
 
     }
-
     else{
 
       root = map[person.id];
@@ -80,8 +117,6 @@ export function buildTree(people) {
     }
 
   });
-
-
 
   return root;
 
@@ -159,7 +194,7 @@ export function drawTree(data) {
   const treeLayout =
   d3.tree()
 
-    .nodeSize([220,150]);
+    .nodeSize([240,200]);
 
   treeLayout(root);
 
@@ -195,14 +230,6 @@ export function drawTree(data) {
     .append("path")
 
     .attr("class", "link")
-
-    .attr("fill", "none")
-
-    .attr("stroke", "#00e5ff")
-
-    .attr("stroke-width", 3)
-
-    .attr("stroke-linecap", "round")
 
     .attr("d", d => `
 
@@ -255,26 +282,17 @@ export function drawTree(data) {
 
   node.append("rect")
 
-    .attr("x", -90)
+    .attr("class", "node-box")
 
-    .attr("y", -40)
+    .attr("x", -95)
 
-    .attr("width", 180)
+    .attr("y", -50)
 
-    .attr("height", 80)
+    .attr("width", 190)
 
-    .attr("rx", 18)
+    .attr("height", 110)
 
-    .attr("fill", "rgba(0,0,0,0.65)")
-
-    .attr("stroke", "#00e5ff")
-
-    .attr("stroke-width", 2)
-
-    .style(
-      "filter",
-      "drop-shadow(0 0 12px #00e5ff)"
-    );
+    .attr("rx", 18);
 
 
 
@@ -284,15 +302,11 @@ export function drawTree(data) {
 
   node.append("text")
 
+    .attr("class", "node-text node-name")
+
     .attr("text-anchor", "middle")
 
-    .attr("y", -8)
-
-    .attr("fill", "#ffffff")
-
-    .style("font-size", "15px")
-
-    .style("font-weight", "bold")
+    .attr("y", -28)
 
     .text(d => {
 
@@ -319,19 +333,56 @@ export function drawTree(data) {
 
   node.append("text")
 
+    .attr("class", "node-text node-birth")
+
     .attr("text-anchor", "middle")
 
-    .attr("y", 18)
-
-    .attr("fill", "#cccccc")
-
-    .style("font-size", "12px")
+    .attr("y", -8)
 
     .text(d => {
 
       if(d.data.birth_date){
 
-        return d.data.birth_date;
+        return "🎂 " + d.data.birth_date;
+
+      }
+
+      return "";
+
+    });
+
+
+
+  /* =========================
+     AGE / STATUS
+  ========================= */
+
+  node.append("text")
+
+    .attr("class", "node-text node-status")
+
+    .attr("text-anchor", "middle")
+
+    .attr("y", 12)
+
+    .text(d => {
+
+      const age = calculateAge(
+        d.data.birth_date,
+        d.data.death_date
+      );
+
+      if(d.data.death_date){
+
+        return age !== null
+          ? `🕊️ Meninggal (usia ${age})`
+          : "🕊️ Meninggal";
+
+      }
+
+      if(age !== null){
+
+        return `${age} tahun`;
 
       }
 
@@ -347,13 +398,11 @@ export function drawTree(data) {
 
   node.append("text")
 
+    .attr("class", "node-text node-gender")
+
     .attr("text-anchor", "middle")
 
-    .attr("y", 36)
-
-    .attr("fill", "#00e5ff")
-
-    .style("font-size", "11px")
+    .attr("y", 30)
 
     .text(d => {
 
@@ -376,6 +425,36 @@ export function drawTree(data) {
 
 
   /* =========================
+     PARENTS INFO
+  ========================= */
+
+  node.append("text")
+
+    .attr("class", "node-text node-parents")
+
+    .attr("text-anchor", "middle")
+
+    .attr("y", 46)
+
+    .text(d => {
+
+      const parts = [];
+
+      if(d.data.father_name){
+        parts.push("👨 " + d.data.father_name);
+      }
+
+      if(d.data.mother_name){
+        parts.push("👩 " + d.data.mother_name);
+      }
+
+      return parts.join("   ");
+
+    });
+
+
+
+  /* =========================
      ANIMATION
   ========================= */
 
@@ -389,22 +468,26 @@ export function drawTree(data) {
 
     .style("opacity", 1);
 
+
+
+  /* =========================
+     CLICK NODE
+     (dipindah ke dalam drawTree supaya
+     variabel "node" valid saat dipakai)
+  ========================= */
+
+  node
+
+  .style("cursor","pointer")
+
+  .on("click",(event,d)=>{
+
+    if(window.openModal){
+
+      window.openModal(d.data);
+
+    }
+
+  });
+
 }
-
-/* =========================
-   CLICK NODE
-========================= */
-
-node
-
-.style("cursor","pointer")
-
-.on("click",(event,d)=>{
-
-  if(window.openModal){
-
-    window.openModal(d.data);
-
-  }
-
-});
