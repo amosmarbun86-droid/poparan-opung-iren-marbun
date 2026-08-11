@@ -8,12 +8,15 @@ import {
   getDocs,
   setDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
-  serverTimestamp
+  serverTimestamp,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 import { state } from './store.js';
+import { escapeHtml } from './utils.js';
 
 
 
@@ -74,8 +77,17 @@ document.getElementById("backToTreesBtn");
 
 function generateToken(){
 
-  return Math.random().toString(36).slice(2, 8).toUpperCase() +
-         Math.random().toString(36).slice(2, 6).toUpperCase();
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const randomValues = new Uint32Array(10);
+  crypto.getRandomValues(randomValues);
+
+  let token = "";
+
+  randomValues.forEach(v=>{
+    token += chars[v % chars.length];
+  });
+
+  return token;
 
 }
 
@@ -263,13 +275,14 @@ function renderTreesList(trees){
 
     card.innerHTML = `
       <div class="tree-card-info">
-        <strong>${tree.name}</strong>
+        <strong>${escapeHtml(tree.name)}</strong>
         ${isOwner ? '<span class="tree-tag">Pemilik</span>' : ''}
         ${(state.isSuperAdmin && !isOwner) ? '<span class="tree-tag admin">Admin akses</span>' : ''}
       </div>
       <div class="tree-card-actions">
         <button class="open-tree-btn">📂 Buka</button>
         ${isOwner ? '<button class="invite-tree-btn">🔑 Token Undangan</button>' : ''}
+        ${isOwner ? '<button class="delete-tree-btn">🗑️ Hapus</button>' : ''}
       </div>
     `;
 
@@ -288,6 +301,19 @@ function renderTreesList(trees){
       inviteBtn.addEventListener("click", ()=>{
 
         generateInvite(tree.id, tree.name);
+
+      });
+
+    }
+
+    const deleteBtn =
+    card.querySelector(".delete-tree-btn");
+
+    if(deleteBtn){
+
+      deleteBtn.addEventListener("click", ()=>{
+
+        deleteTree(tree.id, tree.name, deleteBtn);
 
       });
 
@@ -380,6 +406,85 @@ async function generateInvite(treeId, treeName){
   } catch(err){
 
     alert("Gagal membuat token undangan, coba lagi.");
+
+  }
+
+}
+
+
+
+/* =========================
+   HAPUS SILSILAH
+   Hanya pemilik (owner_uid) yang bisa hapus,
+   tombol ini hanya dirender kalau isOwner true.
+   Menghapus juga semua data terkait: anggota (people),
+   daftar member (tree_members), dan token undangan
+   (tree_invites) supaya tidak ada data "yatim" tertinggal.
+========================= */
+
+async function deleteTree(treeId, treeName, buttonEl){
+
+  const typedName =
+  prompt(
+    `Tindakan ini akan menghapus silsilah "${treeName}" beserta SEMUA anggota di dalamnya secara permanen dan tidak bisa dibatalkan.\n\nUntuk konfirmasi, ketik ulang nama silsilah ini:`
+  );
+
+  if(typedName === null) return;
+
+  if(typedName.trim() !== treeName){
+
+    alert("Nama tidak cocok, penghapusan dibatalkan.");
+    return;
+
+  }
+
+  buttonEl.disabled = true;
+  buttonEl.textContent = "Menghapus...";
+
+  try{
+
+    const batch = writeBatch(db);
+
+    const peopleSnap =
+    await getDocs(
+      query(collection(db, "people"), where("tree_id", "==", treeId))
+    );
+
+    peopleSnap.forEach(d=> batch.delete(d.ref));
+
+    const membersSnap =
+    await getDocs(
+      query(collection(db, "tree_members"), where("tree_id", "==", treeId))
+    );
+
+    membersSnap.forEach(d=> batch.delete(d.ref));
+
+    const invitesSnap =
+    await getDocs(
+      query(collection(db, "tree_invites"), where("tree_id", "==", treeId))
+    );
+
+    invitesSnap.forEach(d=> batch.delete(d.ref));
+
+    batch.delete(doc(db, "trees", treeId));
+
+    await batch.commit();
+
+    if(state.currentTreeId === treeId){
+
+      state.currentTreeId = null;
+      state.currentTreeName = "";
+
+    }
+
+    loadTreesList();
+
+  } catch(err){
+
+    alert("Gagal menghapus silsilah, coba lagi.");
+
+    buttonEl.disabled = false;
+    buttonEl.textContent = "🗑️ Hapus";
 
   }
 
@@ -558,11 +663,11 @@ function renderAccountTokens(invites){
 
     row.innerHTML = `
       <div class="tree-card-info">
-        <strong class="token-code">${inv.id}</strong>
+        <strong class="token-code">${escapeHtml(inv.id)}</strong>
         <span class="tree-tag ${inv.used ? 'admin' : ''}">
           ${inv.used ? 'Sudah dipakai' : 'Belum dipakai'}
         </span>
-        ${inv.used_by_email ? `<span class="token-used-by">oleh ${inv.used_by_email}</span>` : ''}
+        ${inv.used_by_email ? `<span class="token-used-by">oleh ${escapeHtml(inv.used_by_email)}</span>` : ''}
       </div>
       <div class="tree-card-actions">
         <button class="copy-token-btn">📋 Salin</button>
