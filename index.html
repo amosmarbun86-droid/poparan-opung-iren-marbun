@@ -33,6 +33,9 @@
 https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 "></script>
 
+  <!-- JSPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 </head>
 
 <body>
@@ -52,6 +55,10 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
   <p>
     Sistem Pohon Silsilah Keluarga
   </p>
+
+  <button id="themeToggleBtn" class="theme-btn">
+    ☀️ Mode Terang
+  </button>
 
 </header>
 
@@ -105,6 +112,19 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 
 
 
+    <!-- DEATH -->
+
+    <label class="field-label">
+      Tanggal Meninggal (jika sudah tiada)
+    </label>
+
+    <input
+      id="death"
+      type="date"
+    >
+
+
+
     <!-- PHOTO -->
 
     <input
@@ -121,6 +141,18 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 
       <option value="">
         -- Pilih Ayah --
+      </option>
+
+    </select>
+
+
+
+    <!-- MOTHER -->
+
+    <select id="mother">
+
+      <option value="">
+        -- Pilih Ibu --
       </option>
 
     </select>
@@ -175,6 +207,12 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 
     </button>
 
+    <button id="exportPdfBtn">
+
+      📄 Export PDF
+
+    </button>
+
 
 
   </aside>
@@ -219,6 +257,15 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
       type="date"
     >
 
+    <label class="field-label">
+      Tanggal Meninggal (jika sudah tiada)
+    </label>
+
+    <input
+      id="editDeath"
+      type="date"
+    >
+
     <select id="editGender">
 
       <option value="">
@@ -231,6 +278,30 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 
       <option value="female">
         ♀ Perempuan
+      </option>
+
+    </select>
+
+    <select id="editFather">
+
+      <option value="">
+        -- Pilih Ayah --
+      </option>
+
+    </select>
+
+    <select id="editMother">
+
+      <option value="">
+        -- Pilih Ibu --
+      </option>
+
+    </select>
+
+    <select id="editSpouse">
+
+      <option value="">
+        -- Pilih Pasangan --
       </option>
 
     </select>
@@ -291,6 +362,16 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 
 <script
   type="module"
+  src="store.js"
+></script>
+
+<script
+  type="module"
+  src="utils.js"
+></script>
+
+<script
+  type="module"
   src="tree.js"
 ></script>
 
@@ -307,6 +388,11 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 <script
   type="module"
   src="app.js"
+></script>
+
+<script
+  type="module"
+  src="theme.js"
 ></script>
 
 
