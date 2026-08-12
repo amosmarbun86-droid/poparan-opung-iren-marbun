@@ -107,9 +107,6 @@ function generateToken(){
 
 /* =========================
    PASTIKAN DOKUMEN "users/{uid}" ADA
-   Dipakai untuk simpan role (user / super_admin).
-   Role tidak pernah ditimpa kalau sudah ada,
-   supaya tidak ada celah menaikkan role sendiri.
 ========================= */
 
 async function ensureUserDoc(user){
@@ -168,10 +165,11 @@ function hideTreesScreen(){
    PILIH SILSILAH
 ========================= */
 
-function selectTree(treeId, treeName){
+function selectTree(treeId, treeName, isPremium = false){
 
   state.currentTreeId = treeId;
   state.currentTreeName = treeName;
+  state.currentTreeIsPremium = !!isPremium;
 
   currentTreeLabelEl.textContent =
   "— " + treeName;
@@ -181,7 +179,7 @@ function selectTree(treeId, treeName){
   document.dispatchEvent(
 
     new CustomEvent("app:tree-selected", {
-      detail: { treeId, treeName }
+      detail: { treeId, treeName, isPremium: state.currentTreeIsPremium }
     })
 
   );
@@ -192,9 +190,6 @@ function selectTree(treeId, treeName){
 
 /* =========================
    MUAT DAFTAR SILSILAH
-   - User biasa: hanya silsilah yang dia punya/diundang
-     (lewat koleksi tree_members)
-   - Super admin: SEMUA silsilah yang pernah dibuat
 ========================= */
 
 async function loadTreesList(){
@@ -290,10 +285,12 @@ function renderTreesList(trees){
         <strong>${escapeHtml(tree.name)}</strong>
         ${isOwner ? '<span class="tree-tag">Pemilik</span>' : ''}
         ${(state.isSuperAdmin && !isOwner) ? '<span class="tree-tag admin">Admin akses</span>' : ''}
+        ${tree.is_premium ? '<span class="tree-tag premium">👑 Premium</span>' : ''}
       </div>
       <div class="tree-card-actions">
         <button class="open-tree-btn">📂 Buka</button>
         ${isOwner ? '<button class="invite-tree-btn">🔑 Token Undangan</button>' : ''}
+        ${state.isSuperAdmin ? `<button class="toggle-premium-btn">${tree.is_premium ? '👑 Batalkan Premium' : '👑 Jadikan Premium'}</button>` : ''}
         ${isOwner ? '<button class="delete-tree-btn">🗑️ Hapus</button>' : ''}
       </div>
     `;
@@ -301,9 +298,22 @@ function renderTreesList(trees){
     card.querySelector(".open-tree-btn")
       .addEventListener("click", ()=>{
 
-        selectTree(tree.id, tree.name);
+        selectTree(tree.id, tree.name, tree.is_premium);
 
       });
+
+    const togglePremiumBtn =
+    card.querySelector(".toggle-premium-btn");
+
+    if(togglePremiumBtn){
+
+      togglePremiumBtn.addEventListener("click", ()=>{
+
+        togglePremium(tree.id, !tree.is_premium, togglePremiumBtn);
+
+      });
+
+    }
 
     const inviteBtn =
     card.querySelector(".invite-tree-btn");
@@ -359,7 +369,8 @@ async function createTree(){
 
       name: name.trim(),
       owner_uid: state.currentUser.uid,
-      created_at: serverTimestamp()
+      created_at: serverTimestamp(),
+      is_premium: false
 
     });
 
@@ -384,6 +395,55 @@ async function createTree(){
   } finally {
 
     createTreeBtn.disabled = false;
+
+  }
+
+}
+
+
+
+/* =========================
+   TOGGLE PREMIUM (KHUSUS SUPER ADMIN)
+   Upload foto anggota hanya untuk tree premium.
+   Super admin tetap bisa akses walau tree tidak premium
+   (dicek terpisah lewat state.isSuperAdmin di app.js).
+========================= */
+
+async function togglePremium(treeId, newValue, buttonEl){
+
+  buttonEl.disabled = true;
+
+  try{
+
+    await updateDoc(doc(db, "trees", treeId), {
+
+      is_premium: newValue
+
+    });
+
+    // Kalau tree yang diubah adalah tree yang sedang dibuka,
+    // update status premium yang aktif juga, tanpa reload halaman.
+    if(state.currentTreeId === treeId){
+
+      state.currentTreeIsPremium = newValue;
+
+      document.dispatchEvent(
+
+        new CustomEvent("app:tree-premium-changed", {
+          detail: { treeId, isPremium: newValue }
+        })
+
+      );
+
+    }
+
+    await loadTreesList();
+
+  } catch(err){
+
+    alert("Gagal mengubah status premium, coba lagi.");
+
+    buttonEl.disabled = false;
 
   }
 
@@ -430,11 +490,6 @@ async function generateInvite(treeId, treeName){
 
 /* =========================
    HAPUS SILSILAH
-   Hanya pemilik (owner_uid) yang bisa hapus,
-   tombol ini hanya dirender kalau isOwner true.
-   Menghapus juga semua data terkait: anggota (people),
-   daftar member (tree_members), dan token undangan
-   (tree_invites) supaya tidak ada data "yatim" tertinggal.
 ========================= */
 
 async function deleteTree(treeId, treeName, buttonEl){
@@ -550,10 +605,6 @@ async function joinTree(){
 
     }
 
-    // Daftarkan keanggotaan DULU. Rules Firestore cuma
-    // izinkan baca detail silsilah (trees/{id}) kalau sudah
-    // jadi anggota, jadi urutannya harus: jadi anggota dulu,
-    // baru boleh baca nama silsilahnya.
     await setDoc(
       doc(db, "tree_members", `${invite.tree_id}_${state.currentUser.uid}`),
       {
@@ -586,7 +637,7 @@ async function joinTree(){
 
     joinTreeTokenEl.value = "";
 
-    selectTree(treeSnap.id, treeSnap.data().name);
+    selectTree(treeSnap.id, treeSnap.data().name, treeSnap.data().is_premium);
 
   } catch(err){
 
@@ -619,9 +670,6 @@ changeTreeBtn.addEventListener("click", ()=>{
 
 /* =========================
    PANEL ADMIN: DAFTAR PENGGUNA
-   Hanya untuk super_admin. Menampilkan semua
-   dokumen di collection "users" (dibuat otomatis
-   lewat ensureUserDoc saat orang pertama kali login).
 ========================= */
 
 manageUsersBtn.addEventListener("click", ()=>{
@@ -670,7 +718,6 @@ async function loadUsersList(){
 
     });
 
-    // Terbaru duluan berdasarkan created_at
     users.sort((a, b)=>{
 
       const aTime = a.created_at?.toMillis ? a.created_at.toMillis() : 0;
@@ -735,9 +782,6 @@ function renderUsersList(users){
 
 /* =========================
    PANEL ADMIN: KELOLA TOKEN AKUN
-   Hanya untuk super_admin. Menggantikan
-   cara lama (bikin token manual di
-   Firebase Console koleksi "invites").
 ========================= */
 
 manageTokensBtn.addEventListener("click", ()=>{
@@ -770,7 +814,6 @@ async function loadAccountTokens(){
 
   });
 
-  // Terbaru duluan (kalau ada created_at, jatuh ke urutan asli kalau tidak)
   invites.reverse();
 
   renderAccountTokens(invites);
@@ -878,7 +921,6 @@ generateAccountTokenBtn.addEventListener("click", async ()=>{
 
 /* =========================
    MULAI SETELAH LOGIN
-   (dikirim dari auth.js)
 ========================= */
 
 document.addEventListener("app:auth-ready", async (e)=>{
