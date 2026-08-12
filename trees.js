@@ -550,16 +550,10 @@ async function joinTree(){
 
     }
 
-    const treeSnap =
-    await getDoc(doc(db, "trees", invite.tree_id));
-
-    if(!treeSnap.exists()){
-
-      alert("Silsilah tujuan tidak ditemukan");
-      return;
-
-    }
-
+    // Daftarkan keanggotaan DULU. Rules Firestore cuma
+    // izinkan baca detail silsilah (trees/{id}) kalau sudah
+    // jadi anggota, jadi urutannya harus: jadi anggota dulu,
+    // baru boleh baca nama silsilahnya.
     await setDoc(
       doc(db, "tree_members", `${invite.tree_id}_${state.currentUser.uid}`),
       {
@@ -571,6 +565,16 @@ async function joinTree(){
 
       }
     );
+
+    const treeSnap =
+    await getDoc(doc(db, "trees", invite.tree_id));
+
+    if(!treeSnap.exists()){
+
+      alert("Silsilah tujuan tidak ditemukan");
+      return;
+
+    }
 
     await updateDoc(inviteRef, {
 
