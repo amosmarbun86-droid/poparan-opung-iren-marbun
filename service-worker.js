@@ -7,7 +7,7 @@
    selalu yang terbaru & tidak bentrok antar anggota.
 ========================= */
 
-const CACHE_NAME = "silsilah-keluarga-v1";
+const CACHE_NAME = "silsilah-keluarga-v2";
 
 const APP_SHELL = [
   "./",
