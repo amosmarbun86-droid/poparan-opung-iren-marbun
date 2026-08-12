@@ -19,6 +19,15 @@
     🌳 Silsilah Keluarga
   </title>
 
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f2027">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Silsilah">
+
   <!-- STYLE -->
   <link
     rel="stylesheet"
@@ -615,7 +624,26 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
   src="theme.js"
 ></script>
 
+<!-- PWA: daftarkan service worker -->
+<script>
 
+  if ("serviceWorker" in navigator) {
+
+    window.addEventListener("load", () => {
+
+      navigator.serviceWorker
+        .register("service-worker.js")
+        .catch((err) => {
+
+          console.warn("Gagal daftar service worker:", err);
+
+        });
+
+    });
+
+  }
+
+</script>
 
 </body>
 </html>
