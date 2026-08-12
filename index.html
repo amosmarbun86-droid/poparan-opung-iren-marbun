@@ -334,13 +334,25 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
 
 
 
-    <!-- PHOTO -->
+    <!-- PHOTO (fitur premium per-tree) -->
 
-    <input
-      id="photo"
-      type="file"
-      accept="image/*"
-    >
+    <label class="field-label" id="photoLabel">
+      Foto (opsional)
+    </label>
+
+    <div id="photoField">
+
+      <input
+        id="photo"
+        type="file"
+        accept="image/*"
+      >
+
+      <p id="photoLockNote" class="hint-text" style="display:none;">
+        🔒 Upload foto anggota hanya tersedia untuk silsilah Premium. Hubungi admin untuk upgrade.
+      </p>
+
+    </div>
 
 
 
