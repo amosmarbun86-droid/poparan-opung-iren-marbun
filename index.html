@@ -137,6 +137,10 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
       🛠️ Kelola Token Akun (Admin)
     </button>
 
+    <button id="manageUsersBtn" class="trees-create-btn admin-users-btn" style="display:none;">
+      👥 Daftar Pengguna (Admin)
+    </button>
+
     <div class="trees-join-row">
 
       <input
@@ -189,6 +193,37 @@ https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js
     </button>
 
     <button id="backToTreesBtn" class="theme-btn">
+      ⬅ Kembali
+    </button>
+
+  </div>
+
+</div>
+
+
+
+<!-- =========================
+     LAYAR ADMIN: DAFTAR PENGGUNA
+     Hanya muncul untuk super_admin.
+========================= -->
+
+<div id="adminUsersScreen" class="admin-users-screen">
+
+  <div class="trees-box">
+
+    <h2>
+      👥 Daftar Pengguna Terdaftar
+    </h2>
+
+    <p class="trees-hint">
+      Semua akun yang sudah pernah daftar/login ke aplikasi ini.
+    </p>
+
+    <p id="usersLoading" class="trees-loading">Memuat...</p>
+
+    <div id="usersList" class="trees-list"></div>
+
+    <button id="backToTreesFromUsersBtn" class="theme-btn">
       ⬅ Kembali
     </button>
 
