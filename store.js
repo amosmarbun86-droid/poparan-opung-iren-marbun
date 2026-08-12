@@ -14,5 +14,9 @@ export const state = {
 
   // Silsilah (tree) yang sedang aktif dibuka
   currentTreeId: null,
-  currentTreeName: ""
+  currentTreeName: "",
+
+  // Upload foto anggota: fitur premium per-tree.
+  // Super admin selalu bisa akses walau tree tidak premium.
+  currentTreeIsPremium: false
 };
