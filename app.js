@@ -47,6 +47,12 @@ document.getElementById("gender");
 const photoEl =
 document.getElementById("photo");
 
+const photoFieldEl =
+document.getElementById("photoField");
+
+const photoLockNoteEl =
+document.getElementById("photoLockNote");
+
 const searchEl =
 document.getElementById("search");
 
@@ -83,10 +89,6 @@ function hideLoading(){
 }
 
 
-
-/* =========================
-   BASE64
-========================= */
 
 /* =========================
    COMPRESS PHOTO
@@ -144,6 +146,37 @@ function compressImage(file, maxSize = 500, quality = 0.7){
     reader.readAsDataURL(file);
 
   });
+
+}
+
+
+
+/* =========================
+   AKSES FOTO (PREMIUM PER-TREE)
+   Upload foto anggota cuma boleh kalau tree yang sedang
+   dibuka status premium, ATAU akun yang login super admin
+   (super admin selalu bisa akses semua fitur).
+========================= */
+
+function canUsePhoto(){
+
+  return state.isSuperAdmin || state.currentTreeIsPremium;
+
+}
+
+function updatePhotoAccess(){
+
+  const allowed = canUsePhoto();
+
+  photoEl.disabled = !allowed;
+  photoFieldEl.classList.toggle("locked", !allowed);
+  photoLockNoteEl.style.display = allowed ? "none" : "block";
+
+  if(!allowed){
+
+    photoEl.value = "";
+
+  }
 
 }
 
@@ -298,6 +331,13 @@ async function addPerson(){
 
   if(photoFile){
 
+    if(!canUsePhoto()){
+
+      alert("Upload foto anggota hanya tersedia untuk silsilah Premium.");
+      return;
+
+    }
+
     if(!photoFile.type.startsWith("image/")){
 
       alert("File foto harus berupa gambar");
@@ -393,34 +433,20 @@ searchEl.addEventListener(
     .toLowerCase()
     .trim();
 
-
-
     const nodes =
-    document.querySelectorAll(
-      ".node"
-    );
-
-
+    document.querySelectorAll(".node");
 
     nodes.forEach(node=>{
 
-      node.classList.remove(
-        "highlight-node"
-      );
-
-
+      node.classList.remove("highlight-node");
 
       const text =
       node.innerText
       .toLowerCase();
 
-
-
       if(keyword && text.includes(keyword)){
 
-        node.classList.add(
-          "highlight-node"
-        );
+        node.classList.add("highlight-node");
 
       }
 
@@ -436,10 +462,7 @@ searchEl.addEventListener(
    EVENT
 ========================= */
 
-addBtn.addEventListener(
-  "click",
-  addPerson
-);
+addBtn.addEventListener("click", addPerson);
 
 
 
@@ -452,6 +475,13 @@ addBtn.addEventListener(
 document.addEventListener("app:tree-selected", (e)=>{
 
   startRealtime(e.detail.treeId);
+  updatePhotoAccess();
+
+});
+
+document.addEventListener("app:tree-premium-changed", ()=>{
+
+  updatePhotoAccess();
 
 });
 
@@ -466,6 +496,7 @@ document.addEventListener("app:tree-deselected", ()=>{
 
   state.people = [];
   hideLoading();
+  updatePhotoAccess();
 
 });
 
@@ -480,5 +511,9 @@ document.addEventListener("app:auth-signed-out", ()=>{
 
   state.people = [];
   hideLoading();
+  updatePhotoAccess();
 
 });
+
+// Kunci upload foto secara default sebelum ada tree yang dibuka
+updatePhotoAccess();
