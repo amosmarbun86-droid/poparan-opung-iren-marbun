@@ -69,6 +69,18 @@ document.getElementById("accountTokensLoading");
 const backToTreesBtn =
 document.getElementById("backToTreesBtn");
 
+const manageUsersBtn =
+document.getElementById("manageUsersBtn");
+
+const usersListEl =
+document.getElementById("usersList");
+
+const usersLoadingEl =
+document.getElementById("usersLoading");
+
+const backToTreesFromUsersBtn =
+document.getElementById("backToTreesFromUsersBtn");
+
 
 
 /* =========================
@@ -602,6 +614,122 @@ changeTreeBtn.addEventListener("click", ()=>{
 
 
 /* =========================
+   PANEL ADMIN: DAFTAR PENGGUNA
+   Hanya untuk super_admin. Menampilkan semua
+   dokumen di collection "users" (dibuat otomatis
+   lewat ensureUserDoc saat orang pertama kali login).
+========================= */
+
+manageUsersBtn.addEventListener("click", ()=>{
+
+  document.body.classList.add("admin-users-open");
+
+  loadUsersList();
+
+});
+
+backToTreesFromUsersBtn.addEventListener("click", ()=>{
+
+  document.body.classList.remove("admin-users-open");
+
+});
+
+function formatJoinDate(ts){
+
+  if(!ts || !ts.toDate) return "Tanggal tidak diketahui";
+
+  const d = ts.toDate();
+
+  return d.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+
+}
+
+async function loadUsersList(){
+
+  usersLoadingEl.style.display = "block";
+  usersListEl.innerHTML = "";
+
+  try{
+
+    const snap =
+    await getDocs(collection(db, "users"));
+
+    let users = [];
+
+    snap.forEach(d=>{
+
+      users.push({ id: d.id, ...d.data() });
+
+    });
+
+    // Terbaru duluan berdasarkan created_at
+    users.sort((a, b)=>{
+
+      const aTime = a.created_at?.toMillis ? a.created_at.toMillis() : 0;
+      const bTime = b.created_at?.toMillis ? b.created_at.toMillis() : 0;
+
+      return bTime - aTime;
+
+    });
+
+    renderUsersList(users);
+
+  } catch(err){
+
+    usersListEl.innerHTML =
+      `<p class="trees-empty">Gagal memuat daftar pengguna.</p>`;
+
+  } finally {
+
+    usersLoadingEl.style.display = "none";
+
+  }
+
+}
+
+function renderUsersList(users){
+
+  if(users.length === 0){
+
+    usersListEl.innerHTML =
+      `<p class="trees-empty">Belum ada pengguna terdaftar.</p>`;
+
+    return;
+
+  }
+
+  usersListEl.innerHTML = "";
+
+  users.forEach(u=>{
+
+    const row =
+    document.createElement("div");
+
+    row.className = "tree-card";
+
+    row.innerHTML = `
+      <div class="tree-card-info">
+        <strong class="user-email">${escapeHtml(u.email || "(tanpa email)")}</strong>
+        <span class="tree-tag ${u.role === 'super_admin' ? 'admin' : ''}">
+          ${u.role === 'super_admin' ? 'Super Admin' : 'User'}
+        </span>
+        <span class="user-joined">Daftar: ${formatJoinDate(u.created_at)}</span>
+      </div>
+    `;
+
+    usersListEl.appendChild(row);
+
+  });
+
+}
+
+
+
+/* =========================
    PANEL ADMIN: KELOLA TOKEN AKUN
    Hanya untuk super_admin. Menggantikan
    cara lama (bikin token manual di
@@ -767,6 +895,9 @@ document.addEventListener("app:auth-ready", async (e)=>{
   manageTokensBtn.style.display =
   state.isSuperAdmin ? "block" : "none";
 
+  manageUsersBtn.style.display =
+  state.isSuperAdmin ? "block" : "none";
+
   showTreesScreen();
 
 });
@@ -780,5 +911,6 @@ document.addEventListener("app:auth-signed-out", ()=>{
 
   document.body.classList.add("no-tree-selected");
   document.body.classList.remove("admin-tokens-open");
+  document.body.classList.remove("admin-users-open");
 
 });
