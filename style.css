@@ -216,6 +216,22 @@ body.no-tree-selected .trees-screen {
   background: #ff9800;
 }
 
+.tree-tag.premium {
+  background: #ffd54f;
+  color: #4a3800;
+}
+
+.hint-text {
+  font-size: 12px;
+  opacity: 0.75;
+  margin: 4px 0 10px;
+}
+
+#photoField.locked #photo {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .tree-card-actions {
   display: flex;
   gap: 6px;
